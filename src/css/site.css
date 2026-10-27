@@ -60,3 +60,16 @@ footer { color:var(--muted); font-size:13px; padding:10vh 0 2vh; }
   nav .links { font-size:13px; gap:12px; }
   nav .brand { display:none; }
 }
+
+/* Community events. */
+.events { list-style:none; margin-top:8px; }
+.event { background:#232838; padding:18px 20px; border-left:3px solid var(--rust); margin-top:14px; }
+.event .when { font-size:13px; color:var(--muted); }
+.event h3 { font-size:18px; margin-top:4px; font-weight:600; }
+.event .venue { margin-top:4px; font-size:14px; color:var(--muted); }
+.talks { list-style:none; margin-top:10px; font-size:15px; }
+.talks li { margin-top:6px; }
+.talk-who, .talk-links { color:var(--muted); font-size:14px; }
+.talks .tag { font-size:12px; border:1px solid rgba(230,216,206,.25); padding:2px 9px; border-radius:20px; color:var(--muted); }
+.talk-links a, .event-link { color:var(--pink); text-decoration:none; }
+.event-link { display:inline-block; margin-top:10px; font-size:14px; }

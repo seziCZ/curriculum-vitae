@@ -1,0 +1,21 @@
+{
+  "date": "2026-07-29",
+  "group": "AWS",
+  "number": 3,
+  "title": "Summer AWS BBQ Meetup",
+  "venue": "Clubco, Vlněna 5",
+  "url": "https://www.meetup.com/brno-aws-user-group/events/315497981/",
+  "talks": [
+    {
+      "title": "Amazon S3 Vectors",
+      "speaker": "Tomáš Sezima",
+      "company": "Datamole",
+      "mine": true
+    },
+    {
+      "title": "My Step Functions DAG Was a Lie: Going Agentic on 8,000 Photos",
+      "speaker": "Dmytro Hlotenko",
+      "company": "Sage"
+    }
+  ]
+}

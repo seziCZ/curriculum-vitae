@@ -1,0 +1,21 @@
+{
+  "date": "2026-02-05",
+  "group": "AWS",
+  "number": 1,
+  "title": "Building with GenAI & Autonomous Agents",
+  "venue": "GEN Digital, Vlněna 7",
+  "url": "https://luma.com/m1tedor5",
+  "talks": [
+    {
+      "title": "The Curious Case of Generative AI",
+      "speaker": "Tomáš Sezima",
+      "company": "Datamole",
+      "mine": true
+    },
+    {
+      "title": "Accelerating Software Development with Kiro and autonomous agent",
+      "speaker": "Sanjay Kashalkar",
+      "company": "AWS"
+    }
+  ]
+}

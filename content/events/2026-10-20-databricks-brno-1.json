@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-20",
+  "group": "Databricks",
+  "number": 1,
+  "title": "Databricks Brno meetup #1",
+  "url": "https://usergroups.databricks.com/events/details/databricks-user-groups-brno-databricks-user-group-presents-databricks-brno-meetup-1/",
+  "talks": [
+    {
+      "title": "Setting up Lakeflow Connect Pipelines for Oracle and SQL Servers",
+      "speaker": "Juraj Paluba",
+      "company": "Datamole"
+    },
+    {
+      "title": "5 Layers Instead of 3: How We Expanded the Medallion Architecture for ML in Energy",
+      "speaker": "Michal Mec",
+      "company": "E.ON"
+    },
+    {
+      "title": "Unity Catalog Hide and Seek: Personal Data Protection in Lakeflow Declarative Pipelines",
+      "speaker": "Tomáš Sezima",
+      "company": "Datamole",
+      "mine": true
+    }
+  ]
+}

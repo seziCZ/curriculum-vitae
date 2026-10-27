@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-08",
+  "group": "AWS",
+  "number": 4,
+  "title": "AWS Brno Meetup #4",
+  "venue": "Clubco, Vlněna 5",
+  "url": "https://luma.com/hvrzjkf0",
+  "talks": [
+    {
+      "title": "AWS Resilience Engineering",
+      "speaker": "George Palangattil Koshy",
+      "company": "Kyndryl"
+    },
+    {
+      "title": "S3 Tables",
+      "speaker": "Gabriel Pajunk",
+      "company": "Datamole"
+    }
+  ]
+}

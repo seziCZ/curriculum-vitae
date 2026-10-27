@@ -1,0 +1,26 @@
+{
+  "date": "2026-04-29",
+  "group": "AWS",
+  "number": 2,
+  "title": "AI Agents in Ops & Security",
+  "venue": "GEN Digital",
+  "url": "https://www.meetup.com/brno-aws-user-group/events/313906682/",
+  "talks": [
+    {
+      "title": "AWS DevOps Agent: Your Always-On Operations Teammate",
+      "speaker": "Jan Zelený",
+      "company": "AWS"
+    },
+    {
+      "title": "AWS Security Agent: AI-Powered Security for the Speed of Development",
+      "speaker": "Akshay Kulkarni",
+      "company": "SentinelOne"
+    },
+    {
+      "title": "AWS S3 Files",
+      "speaker": "Tomáš Sezima",
+      "company": "Datamole",
+      "mine": true
+    }
+  ]
+}

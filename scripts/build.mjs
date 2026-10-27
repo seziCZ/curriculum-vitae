@@ -1,7 +1,7 @@
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { renderPage } from '../src/build/content.js';
+import { loadEvents, renderPage } from '../src/build/content.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FONT_FAMILIES = ['space-grotesk', 'inter'];
@@ -28,8 +28,8 @@ export async function build(outDir = 'dist', today = localIsoDate()) {
       cpSync(join(root, 'node_modules/@fontsource-variable', family, 'files', name), join(outDir, 'fonts', name));
     }
   }
-  // Tasks 2 and 3 parse these files. For now only the file lists are passed on.
-  const events = listFiles(join(root, 'content/events'));
+  // Task 3 parses the posts. For now only the file list is passed on.
+  const events = loadEvents(join(root, 'content/events'));
   const posts = listFiles(join(root, 'content/posts'));
   const template = readFileSync(join(root, 'src/index.html'), 'utf8');
   writeFileSync(join(outDir, 'index.html'), renderPage(template, { events, posts, today }));
