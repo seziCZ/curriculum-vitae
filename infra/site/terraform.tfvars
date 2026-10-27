@@ -1,0 +1,1 @@
+domain = "sezima.dev"
