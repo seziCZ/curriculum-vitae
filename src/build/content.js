@@ -83,8 +83,11 @@ export function renderEvent(e) {
 </li>`;
 }
 
+// The Community list shows only the newest meetups; the intro still counts all of them.
+const MAX_EVENTS = 5;
+
 export function renderCommunity(events, today) {
-  const sorted = [...events].sort((a, b) => b.date.localeCompare(a.date));
+  const sorted = [...events].sort((a, b) => b.date.localeCompare(a.date)).slice(0, MAX_EVENTS);
   return `<p>${esc(communityIntro(events, today))}</p>
 <div class="next-event" hidden></div>
 <ol class="events">

@@ -36,6 +36,15 @@ test('renderEvent escapes text and skips missing optional fields', () => {
   assert.match(html, /A &amp; B &lt;test&gt;/);
   assert.doesNotMatch(html, /undefined|null/);
 });
+test('renderCommunity shows only the 5 newest meetups', () => {
+  const more = [
+    ...events,
+    { ...valid, date: '2026-11-12', number: 5, title: 'Newer meetup A' },
+    { ...valid, date: '2026-12-03', number: 6, title: 'Newer meetup B' },
+  ];
+  const dates = [...renderCommunity(more, '2026-10-27').matchAll(/data-date="([^"]+)"/g)].map(m => m[1]);
+  assert.deepEqual(dates, ['2026-12-03', '2026-11-12', '2026-10-20', '2026-10-08', '2026-07-29']);
+});
 test('renderCommunity puts the next-event slot after the intro and before the list', () => {
   const html = renderCommunity(events, '2026-10-27');
   const intro = html.indexOf('<p>'), slot = html.indexOf('<div class="next-event" hidden></div>'), list = html.indexOf('<ol class="events">');
