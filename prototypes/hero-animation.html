@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spike: geometric hero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --navy:#0b0d27; --rust:#c13a1f; --blue:#56789a; --pink:#e9c6bd; }
+* { box-sizing:border-box; margin:0; }
+body { background:var(--navy); color:var(--pink); font-family:'Space Grotesk',system-ui,sans-serif; }
+.stage { height:400vh; position:relative; }
+.sticky { position:sticky; top:0; height:100vh; overflow:hidden; }
+canvas { display:block; width:100%; height:100%; }
+.hero { position:absolute; left:clamp(16px,6vw,96px); bottom:clamp(24px,10vh,120px);
+  background:var(--navy); padding:28px 32px; max-width:min(600px,calc(100vw - 32px)); }
+.hero h1 { font-size:clamp(40px,7vw,92px); line-height:.95; font-weight:700; letter-spacing:-.02em; }
+.hero p { margin-top:16px; font-size:clamp(16px,1.8vw,20px); color:#cfd6e4; line-height:1.4; }
+.hero .bar { display:flex; gap:6px; margin-bottom:18px; }
+.hero .bar i { width:28px; height:8px; display:block; }
+.outro { position:absolute; left:clamp(16px,6vw,96px); top:50%; transform:translateY(-50%);
+  max-width:min(420px,calc(100vw - 32px)); opacity:0; pointer-events:none; }
+.outro h2 { font-size:clamp(28px,4vw,52px); line-height:1.05; font-weight:700; }
+.outro p { margin-top:14px; font-size:18px; color:#cfd6e4; line-height:1.45; }
+.hint { position:absolute; left:50%; bottom:20px; transform:translateX(-50%); font-size:13px;
+  letter-spacing:.2em; text-transform:uppercase; opacity:0; }
+.after { min-height:80vh; padding:15vh 6vw; color:#cfd6e4; font-size:20px; }
+@media (max-width:760px) {
+  .outro { top:8vh; transform:none; }
+}
+</style>
+</head>
+<body>
+<section class="stage" id="stage">
+  <div class="sticky">
+    <canvas id="c"></canvas>
+    <div class="hero" id="hero">
+      <div class="bar"><i style="background:var(--rust)"></i><i style="background:var(--blue)"></i><i style="background:var(--pink)"></i></div>
+      <h1>Tomáš Sezima</h1>
+      <p>Data architect on AWS and Databricks. Engineer at heart. Building with generative AI.</p>
+    </div>
+    <div class="outro" id="outro">
+      <h2>From raw data to data that AI can use.</h2>
+      <p>Bronze, silver and gold layers on a lakehouse: the data platform that generative AI needs.</p>
+    </div>
+    <div class="hint" id="hint">Scroll &darr;</div>
+  </div>
+</section>
+<section class="after">The rest of the page (about, talks, posts, contact) continues here.</section>
+
+<script>
+const C = { navy:'#0b0d27', rust:'#c13a1f', blue:'#56789a', pink:'#e9c6bd' };
+const PAL = [C.navy, C.rust, C.blue, C.pink];
+const TYPES = ['quarter','half','circle','rings','stripes','star','bullseye','arch'];
+const LAYER = [
+  { name:'Bronze', sub:'raw data', col:C.rust, dark:'#7d2414' },
+  { name:'Silver', sub:'cleaned and joined', col:C.blue, dark:'#34506b' },
+  { name:'Gold', sub:'ready for AI', col:C.pink, dark:'#b8938a' },
+];
+const COS = Math.cos(Math.PI / 6), SIN = 0.5;
+
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const stage = document.getElementById('stage');
+const hero = document.getElementById('hero'), outro = document.getElementById('outro'), hint = document.getElementById('hint');
+
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const lerp = (a, b, t) => a + (b - a) * t;
+
+let W, H, dpr, tiles = [], extras = [], layers = [[], [], []], lay, particles = [];
+const start = performance.now();
+let lastFlip = 0;
+
+function build() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const size = W < 700 ? 72 : 112;
+  const cols = Math.ceil(W / size) + 1, rows = Math.ceil(H / size) + 1;
+  const ox = (W - cols * size) / 2, oy = (H - rows * size) / 2;
+
+  tiles = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const bg = pick([C.navy, C.navy, C.rust, C.blue, C.pink]);
+    let fg; do fg = pick(PAL); while (fg === bg);
+    const rot = Math.floor(rnd(0, 4)) * Math.PI / 2;
+    tiles.push({ hx: ox + c * size + size / 2, hy: oy + r * size + size / 2, size, bg, fg,
+      type: pick(TYPES), rot, rotTarget: rot, nx: rnd(-1, 1), at: rnd(0, 1.8) });
+  }
+
+  const n = Math.max(2, Math.floor(Math.sqrt(tiles.length / 3)));
+  const mobile = W < 760;
+  const Hs = Math.min((mobile ? W * .9 : W * .5) / (2 * COS), H * (mobile ? .55 : .85) / 2.4);
+  const c = Hs / n, L = Hs * .62, T = Hs * .07;
+  const cx = mobile ? W / 2 : W * .66;
+  const total = Hs + 2 * L + T;
+  const cy = mobile ? H * .64 : H / 2;
+  const y0 = cy - total / 2;
+  lay = { n, c, Hs, T, cx, tops: [y0 + 2 * L, y0 + L, y0] };
+
+  const order = tiles.slice().sort(() => Math.random() - .5);
+  extras = []; layers = [[], [], []];
+  order.forEach((tl, i) => {
+    if (i < 3 * n * n) {
+      const l = Math.floor(i / (n * n)), k = i % (n * n), u = k % n, v = Math.floor(k / n);
+      const g = .94;
+      tl.cell = { l, u, v };
+      tl.delay = l * .08 + rnd(0, .15);
+      tl.target = [c * COS * g, c * SIN * g, -c * COS * g, c * SIN * g,
+        cx + (u - v) * c * COS, lay.tops[l] + (u + v + 1) * c * SIN];
+      layers[l].push(tl);
+    } else {
+      tl.cell = null;
+      tl.delay = rnd(0, .1);
+      const dx = tl.hx - W / 2, dy = tl.hy - H / 2, d = Math.hypot(dx, dy) || 1;
+      tl.target = [size * .3, 0, 0, size * .3, tl.hx + dx / d * W * .6, tl.hy + dy / d * H * .6];
+      extras.push(tl);
+    }
+  });
+
+  particles = Array.from({ length: 70 }, () => ({ u: rnd(.5, n - .5), v: rnd(.5, n - .5), sp: rnd(.15, .35), ph: rnd(0, 1) }));
+}
+
+function shape(type, fg, bg) {
+  ctx.fillStyle = fg; ctx.strokeStyle = fg; ctx.lineWidth = .022;
+  switch (type) {
+    case 'quarter':
+      ctx.beginPath(); ctx.moveTo(-.5, -.5); ctx.arc(-.5, -.5, 1, 0, Math.PI / 2); ctx.closePath(); ctx.fill(); break;
+    case 'half':
+      ctx.beginPath(); ctx.arc(0, .5, .5, Math.PI, 0); ctx.closePath(); ctx.fill(); break;
+    case 'circle':
+      ctx.beginPath(); ctx.arc(0, 0, .4, 0, 7); ctx.fill(); break;
+    case 'rings':
+      for (let r = .12; r < 1.45; r += .09) { ctx.beginPath(); ctx.arc(-.5, .5, r, -Math.PI / 2, 0); ctx.stroke(); } break;
+    case 'stripes':
+      for (let y = -.5 + .045; y < .5; y += .075) { ctx.beginPath(); ctx.moveTo(-.5, y); ctx.lineTo(.5, y); ctx.stroke(); } break;
+    case 'star':
+      ctx.fillRect(-.5, -.5, 1, 1); ctx.fillStyle = bg;
+      for (const [x, y] of [[-.5, -.5], [.5, -.5], [.5, .5], [-.5, .5]]) { ctx.beginPath(); ctx.arc(x, y, .5, 0, 7); ctx.fill(); }
+      break;
+    case 'bullseye':
+      for (let r = .06; r < .48; r += .07) { ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.stroke(); } break;
+    case 'arch':
+      ctx.beginPath(); ctx.arc(0, .5, .5, Math.PI, 0); ctx.fill(); ctx.strokeStyle = bg;
+      for (let r = .08; r < .5; r += .08) { ctx.beginPath(); ctx.arc(0, .5, r, Math.PI, 0); ctx.stroke(); }
+      break;
+  }
+}
+
+function drawTile(tl, m, alpha) {
+  ctx.setTransform(m[0] * dpr, m[1] * dpr, m[2] * dpr, m[3] * dpr, m[4] * dpr, m[5] * dpr);
+  ctx.globalAlpha = alpha;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(-.5, -.5, 1, 1); ctx.clip();
+  ctx.fillStyle = tl.bg; ctx.fillRect(-.5, -.5, 1, 1);
+  ctx.rotate(tl.rot);
+  shape(tl.type, tl.fg, tl.bg);
+  ctx.restore();
+}
+
+function drawFlying(tl, p, t) {
+  const grow = ease(clamp((t - tl.at) / .35));
+  if (grow <= 0) return;
+  const q = ease(clamp((p - .05 - tl.delay) / .45));
+  const s = tl.size * grow;
+  const m = [s, 0, 0, s, tl.hx, tl.hy].map((x, i) => lerp(x, tl.target[i], q));
+  m[4] += Math.sin(q * Math.PI) * tl.nx * 90;
+  const a = tl.cell ? 1 : 1 - q;
+  if (a > .01) drawTile(tl, m, a);
+}
+
+function slabPoints(l) {
+  const hw = lay.n * lay.c * COS, top = lay.tops[l];
+  return { T: [lay.cx, top], R: [lay.cx + hw, top + lay.Hs / 2], B: [lay.cx, top + lay.Hs], L: [lay.cx - hw, top + lay.Hs / 2] };
+}
+
+function poly(pts, fill) {
+  ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+  for (const pt of pts.slice(1)) ctx.lineTo(pt[0], pt[1]);
+  ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+}
+
+function drawSides(l, a) {
+  const { R, B, L } = slabPoints(l), d = lay.T;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = a;
+  poly([L, B, [B[0], B[1] + d], [L[0], L[1] + d]], LAYER[l].dark);
+  poly([B, R, [R[0], R[1] + d], [B[0], B[1] + d]], LAYER[l].col);
+}
+
+function drawTint(l, a) {
+  const { T, R, B, L } = slabPoints(l);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = a * .3;
+  poly([T, R, B, L], LAYER[l].col);
+}
+
+function drawLabels(a) {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = a;
+  for (let l = 0; l < 3; l++) {
+    const { R } = slabPoints(l), x = R[0] + 28, y = R[1] + lay.T / 2;
+    if (x + 140 > W) continue;
+    ctx.fillStyle = LAYER[l].col; ctx.fillRect(x, y - 16, 10, 10);
+    ctx.fillStyle = C.pink; ctx.font = '600 15px "Space Grotesk", sans-serif'; ctx.fillText(LAYER[l].name.toUpperCase(), x + 18, y - 7);
+    ctx.fillStyle = '#cfd6e4'; ctx.font = '400 14px "Space Grotesk", sans-serif'; ctx.fillText(LAYER[l].sub, x + 18, y + 13);
+  }
+}
+
+function drawFlow(t, a) {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  for (const pt of particles) {
+    const s = (t * pt.sp + pt.ph) % 1;
+    const x = lay.cx + (pt.u - pt.v) * lay.c * COS;
+    const off = (pt.u + pt.v) * lay.c * SIN;
+    const y = lerp(lay.tops[0] + off, lay.tops[2] + off, s);
+    ctx.globalAlpha = a * Math.sin(s * Math.PI);
+    ctx.fillStyle = C.pink;
+    ctx.beginPath(); ctx.arc(x, y, Math.max(2.5, lay.c * .1), 0, 7); ctx.fill();
+  }
+}
+
+function frame(now) {
+  const t = (now - start) / 1000;
+  const intro = clamp((t - 2) / .6);
+  const st = stage.getBoundingClientRect();
+  const p = clamp(-st.top / (st.height - innerHeight));
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1;
+  ctx.fillStyle = C.navy; ctx.fillRect(0, 0, W, H);
+
+  if (now - lastFlip > 700) { lastFlip = now; pick(tiles).rotTarget += Math.PI / 2; }
+  for (const tl of tiles) tl.rot += (tl.rotTarget - tl.rot) * .08;
+
+  const slabQ = ease(clamp((p - .55) / .25));
+  for (const tl of extras) drawFlying(tl, p, t);
+  for (let l = 0; l < 3; l++) {
+    if (slabQ > 0) drawSides(l, slabQ);
+    for (const tl of layers[l]) drawFlying(tl, p, t);
+    if (slabQ > 0) drawTint(l, slabQ);
+  }
+  if (p > .75) drawFlow(t, clamp((p - .75) / .15));
+  if (slabQ > 0) drawLabels(slabQ);
+
+  hero.style.opacity = 1 - clamp(p / .12);
+  outro.style.opacity = clamp((p - .8) / .12);
+  hint.style.opacity = intro * (1 - clamp(p / .05));
+  requestAnimationFrame(frame);
+}
+
+let resizeTimer;
+addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(build, 150); });
+build();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
