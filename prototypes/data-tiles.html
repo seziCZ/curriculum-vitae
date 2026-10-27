@@ -8,29 +8,30 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root { --ivory:#f0ede4; --ink:#1f1e1c; --muted:#5c5a55; }
+:root { --navy:#1c2030; --rust:#b4634a; --light:#e6d8ce; --muted:#b4b8c2; }
 * { box-sizing:border-box; margin:0; }
-body { background:var(--ivory); color:var(--ink); font-family:'Space Grotesk',system-ui,sans-serif; padding:48px clamp(16px,5vw,64px) 80px; }
+body { background:var(--navy); color:var(--light); font-family:'Space Grotesk',system-ui,sans-serif; padding:48px clamp(16px,5vw,64px) 80px; }
 h1 { font-size:clamp(28px,4vw,44px); font-weight:700; letter-spacing:-.02em; }
 .lead { margin-top:10px; color:var(--muted); font-size:17px; max-width:640px; line-height:1.5; }
-.grid { margin-top:36px; display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:22px 6px; }
+.grid { margin-top:36px; display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:22px 4px; }
 figure { margin:0; }
-canvas { display:block; width:100%; aspect-ratio:1; border-radius:2px; }
-figcaption { margin-top:8px; font-size:13px; color:var(--muted); }
-figcaption b { color:var(--ink); font-weight:600; margin-right:6px; }
-.grain { position:fixed; inset:0; pointer-events:none; z-index:10; opacity:.22; mix-blend-mode:multiply;
+canvas { display:block; width:100%; aspect-ratio:1; }
+figcaption { margin-top:8px; font-size:13px; color:var(--muted); display:flex; gap:6px; align-items:baseline; flex-wrap:wrap; }
+figcaption b { color:var(--light); font-weight:600; }
+figcaption span { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--rust); }
+/* Film grain over the whole page, the same as in the hero. */
+.grain { position:fixed; inset:0; pointer-events:none; z-index:10; opacity:.3; mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
 </style>
 </head>
 <body>
 <div class="grain"></div>
 <h1>Data tile catalog</h1>
-<p class="lead">Each tile shows a data idea in the mid-century style. Tell me the numbers of the tiles you like, and of the ones you do not like.</p>
+<p class="lead">Data tiles in the colors and line weights of the dark hero. Tell me the numbers of the tiles you like, and of the ones you do not like.</p>
 <div class="grid" id="grid"></div>
 
 <script>
-const P = { ivory:'#f0ede4', paper:'#e7e1d3', sand:'#d7c8a9', clay:'#c9785b', sage:'#8a9a78', blue:'#7d9cbd',
-  mist:'#c6d4cf', blush:'#e3c7bd', mustard:'#d9b75f', ink:'#1f1e1c' };
+const C = { navy:'#1c2030', rust:'#b4634a', blue:'#6e8ba5', pink:'#dcc5ba', light:'#e6d8ce' };
 const TAU = Math.PI * 2;
 
 // Seeded random numbers, so every tile looks the same on each reload.
@@ -42,212 +43,227 @@ const rng = seed => () => {
 };
 const gauss = r => Math.sqrt(-2 * Math.log(r() + 1e-9)) * Math.cos(TAU * r());
 
-// Drawing helpers. Every tile is drawn in unit coordinates from -0.5 to 0.5; HL is one hairline.
-let g, HL;
+// Drawing helpers. Every tile is drawn in unit coordinates from -0.5 to 0.5,
+// with the same line weights as the hero: .022 for motifs, .012 for grids.
+let g;
 const dot = (x, y, r, c) => { g.fillStyle = c; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); };
-const line = (pts, c, w = 1, a = 1) => {
-  g.save(); g.globalAlpha *= a; g.strokeStyle = c; g.lineWidth = HL * w; g.beginPath();
+const ring = (x, y, r, c, w) => { g.strokeStyle = c; g.lineWidth = w; g.beginPath(); g.arc(x, y, r, 0, TAU); g.stroke(); };
+const line = (pts, c, w = .022, a = 1) => {
+  g.save(); g.globalAlpha *= a; g.strokeStyle = c; g.lineWidth = w; g.beginPath();
   pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); g.restore();
 };
 const fill = (pts, c) => { g.fillStyle = c; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); g.fill(); };
-const grid = (n, c, a) => {
-  for (let i = 1; i < n; i++) { const p = -.5 + i / n; line([[p, -.5], [p, .5]], c, 1, a); line([[-.5, p], [.5, p]], c, 1, a); }
+const rect = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+const grid = (n, c, a, w = .012) => {
+  for (let i = 1; i < n; i++) { const p = -.5 + i / n; line([[p, -.5], [p, .5]], c, w, a); line([[-.5, p], [.5, p]], c, w, a); }
 };
 const curve = (f, x0 = -.5, x1 = .5) => { const pts = []; for (let x = x0; x <= x1 + 1e-9; x += .01) pts.push([x, f(x)]); return pts; };
 const diamond = (cx, cy, w, h, c) => fill([[cx, cy - h / 2], [cx + w / 2, cy], [cx, cy + h / 2], [cx - w / 2, cy]], c);
+const elbow = ([x1, y1], [x2, y2], c, w, a) => line([[x1, y1], [x1, (y1 + y2) / 2], [x2, (y1 + y2) / 2], [x2, y2]], c, w, a);
 
 const TILES = [
-  { name: 'Data point', bg: P.paper, draw() {
-    grid(6, P.ink, .45); dot(1 / 6, -1 / 6, .05, P.clay);
+  { name: 'Data point', tag: 'in hero', bg: C.blue, draw() {
+    grid(6, C.navy, .7); dot(1 / 6, -1 / 6, .05, C.rust);
   } },
-  { name: 'Trend', bg: P.mist, draw() {
-    grid(6, P.ink, .3);
-    line([[-.42, .36], [.42, -.3]], P.ink, 1, .6);
-    [[-.33, .3], [-.22, .2], [-.12, .17], [-.02, .05], [.1, -.02], [.2, -.14], [.32, -.22]].forEach(([x, y]) => dot(x, y, .03, P.ink));
-    dot(.25, .25, .03, P.clay);
+  { name: 'Trend', tag: 'in hero', bg: C.navy, draw() {
+    grid(6, C.light, .3);
+    line([[-.42, .36], [.42, -.3]], C.light, .012, .6);
+    [[-.33, .3], [-.22, .2], [-.12, .17], [-.02, .05], [.1, -.02], [.2, -.14], [.32, -.22]].forEach(([x, y]) => dot(x, y, .035, C.light));
+    dot(.25, .25, .035, C.rust);
   } },
-  { name: 'Dot matrix', bg: P.sand, draw() {
+  { name: 'Dot matrix', tag: 'in hero', bg: C.navy, draw() {
     const r = rng(3);
     for (let i = -4; i <= 4; i++) for (let j = -4; j <= 4; j++)
-      if (Math.abs(i) + Math.abs(j) <= 4 && r() > .25) { g.fillStyle = P.ink; g.fillRect(i * .09 - .032, j * .09 - .032, .064, .064); }
+      if (Math.abs(i) + Math.abs(j) <= 4 && r() > .3) rect(i * .085 - .03, j * .085 - .03, .06, .06, C.light);
   } },
-  { name: 'Next token', bg: P.paper, draw() {
-    [-.32, -.16, 0, .16].forEach(x => dot(x, 0, .045, P.ink));
-    dot(.32, 0, .045, P.clay);
-    line([[-.4, .12], [.4, .12]], P.ink, 1, .35);
+  { name: 'Next token', tag: 'in hero', bg: C.navy, draw() {
+    [-.3, -.1, .1, .3].forEach(x => dot(x, 0, .055, C.light));
+    dot(.1, 0, .055, C.rust);
   } },
-  { name: 'Network', bg: P.blush, draw() {
+  { name: 'Network', tag: 'in hero', bg: C.pink, draw() {
     const n = [[-.3, -.28], [.05, -.33], [.32, -.12], [-.12, -.02], [.2, .2], [-.3, .25], [.02, .32]];
-    [[0, 1], [0, 3], [1, 2], [1, 3], [3, 4], [2, 4], [3, 5], [5, 6], [4, 6]].forEach(([a, b]) => line([n[a], n[b]], P.ink, 1, .7));
-    n.forEach(([x, y], i) => i === 3 ? dot(x, y, .06, P.clay) : dot(x, y, .035, P.blue));
+    [[0, 1], [0, 3], [1, 2], [1, 3], [3, 4], [2, 4], [3, 5], [5, 6], [4, 6]].forEach(([a, b]) => line([n[a], n[b]], C.navy, .014));
+    n.forEach(([x, y], i) => dot(x, y, i === 3 ? .065 : .045, C.rust));
   } },
-  { name: 'Columns', bg: P.paper, draw() {
+  { name: 'Columns', tag: 'your pick', bg: C.navy, draw() {
     const w = .12, base = .36;
     [.35, .55, .42, .68].forEach((h, i) => {
       const x = -.345 + i * .19;
-      g.fillStyle = P.blue; g.fillRect(x, base - h + w / 2, w, h - w / 2);
+      rect(x, base - h + w / 2, w, h - w / 2, C.pink);
       g.beginPath(); g.arc(x + w / 2, base - h + w / 2, w / 2, Math.PI, 0); g.fill();
     });
-    line([[-.42, base], [.42, base]], P.ink, 1, .6);
+    line([[-.42, base], [.42, base]], C.light, .012, .5);
   } },
-  { name: 'Rose chart', bg: P.paper, draw() {
-    [[.42, P.clay], [.3, P.mustard], [.38, P.blue], [.22, P.sage]].forEach(([r, c], i) => {
+  { name: 'Rose chart', tag: 'your pick', bg: C.navy, draw() {
+    [[.42, C.rust], [.3, C.pink], [.38, C.blue], [.24, C.light]].forEach(([r, c], i) => {
       g.fillStyle = c; g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, r, -Math.PI + i * Math.PI / 2, -Math.PI / 2 + i * Math.PI / 2); g.closePath(); g.fill();
     });
   } },
-  { name: 'Radial bars', bg: P.ink, draw() {
+  { name: 'Medallion', tag: 'your pick', bg: C.navy, draw() {
+    diamond(0, .2, .72, .28, C.rust); diamond(0, .02, .72, .28, C.blue); diamond(0, -.16, .72, .28, C.pink);
+  } },
+  { name: 'Join', tag: 'your pick', bg: C.navy, draw() {
+    dot(-.12, 0, .26, C.blue); dot(.12, 0, .26, C.rust);
+    g.save(); g.beginPath(); g.arc(-.12, 0, .26, 0, TAU); g.clip(); dot(.12, 0, .26, C.pink); g.restore();
+  } },
+  { name: 'Treemap', tag: 'your pick', bg: C.navy, draw() {
+    [[-.5, -.5, .58, .62, C.rust], [.08, -.5, .42, .3, C.pink], [.08, -.2, .42, .32, C.blue],
+     [-.5, .12, .3, .38, C.pink], [-.2, .12, .28, .38, C.blue], [.08, .12, .42, .38, C.rust]]
+      .forEach(([x, y, w, h, c]) => rect(x + .01, y + .01, w - .02, h - .02, c));
+  } },
+  { name: 'Radial bars', bg: C.navy, draw() {
     g.lineCap = 'butt';
-    [[.13, .85, P.ivory], [.21, .6, P.clay], [.29, .4, P.mustard], [.37, .7, P.mist]].forEach(([r, f, c]) => {
-      g.save(); g.globalAlpha = .18; g.strokeStyle = P.ivory; g.lineWidth = .045; g.beginPath(); g.arc(0, 0, r, 0, TAU); g.stroke(); g.restore();
-      g.strokeStyle = c; g.lineWidth = .045; g.beginPath(); g.arc(0, 0, r, -Math.PI / 2, -Math.PI / 2 + f * TAU); g.stroke();
+    [[.13, .85, C.light], [.21, .6, C.rust], [.29, .4, C.pink], [.37, .7, C.blue]].forEach(([r, f, c]) => {
+      g.save(); g.globalAlpha = .15; ring(0, 0, r, C.light, .05); g.restore();
+      g.strokeStyle = c; g.lineWidth = .05; g.beginPath(); g.arc(0, 0, r, -Math.PI / 2, -Math.PI / 2 + f * TAU); g.stroke();
     });
   } },
-  { name: 'Isotype', bg: P.sand, draw() {
+  { name: 'Donut', bg: C.pink, draw() {
+    g.lineCap = 'butt'; let a = -Math.PI / 2;
+    [[.45, C.rust], [.3, C.blue], [.25, C.navy]].forEach(([f, c]) => {
+      g.strokeStyle = c; g.lineWidth = .14; g.beginPath(); g.arc(0, 0, .27, a + .03, a + f * TAU - .03); g.stroke();
+      a += f * TAU;
+    });
+  } },
+  { name: 'Bar stripes', bg: C.navy, draw() {
+    const r = rng(13);
+    for (let i = 0; i < 9; i++) line([[-.5, -.4 + i * .1], [-.5 + .3 + .62 * r(), -.4 + i * .1]], i === 4 ? C.rust : C.light, .045);
+  } },
+  { name: 'Stream', bg: C.navy, draw() {
+    for (let i = 0; i < 6; i++) {
+      const off = -.25 + i * .1;
+      line(curve(x => off + .04 * Math.sin(x * 10 + i * .8)), i === 2 ? C.rust : C.light);
+    }
+  } },
+  { name: 'Isotype', bg: C.pink, draw() {
     [7, 4, 6, 2].forEach((n, row) => {
-      for (let i = 0; i < n; i++) dot(-.3 + i * .1, -.27 + row * .18, .035, row === 1 ? P.clay : P.ink);
+      for (let i = 0; i < n; i++) dot(-.3 + i * .1, -.27 + row * .18, .038, row === 1 ? C.rust : C.navy);
     });
   } },
-  { name: 'Histogram', bg: P.mist, draw() {
-    const r = rng(10);
-    for (let i = 0; i < 17; i++) {
-      const h = .62 * Math.exp(-(((i - 8) / 3.6) ** 2)) + .04 + .05 * r();
-      g.fillStyle = P.ink; g.fillRect(-.42 + i * .052, .36 - h, .03, h);
+  { name: 'Bubbles', bg: C.navy, draw() {
+    const rs = [.064, .112, .08, .144, .048], cs = [C.pink, C.rust, C.blue, C.pink, C.rust];
+    let x = -.478;
+    rs.forEach((r, i) => { x += r; dot(x, .3 - r, r, cs[i]); x += r + .015; });
+    line([[-.48, .3], [.48, .3]], C.light, .012, .5);
+  } },
+  { name: 'Step chart', bg: C.blue, draw() {
+    const xs = [-.5, -.3, -.1, .1, .3, .5], hs = [.15, .3, .26, .5, .72], pts = [[-.5, .5]];
+    hs.forEach((h, i) => { pts.push([xs[i], .5 - h], [xs[i + 1], .5 - h]); });
+    pts.push([.5, .5]); fill(pts, C.navy);
+  } },
+  { name: 'Timeline', bg: C.navy, draw() {
+    const r = rng(18); g.lineCap = 'round';
+    for (let i = 0; i < 6; i++) {
+      const x0 = -.4 + r() * .4, len = .15 + r() * .35;
+      line([[x0, -.33 + i * .13], [Math.min(.4, x0 + len), -.33 + i * .13]], i === 3 ? C.rust : i === 1 ? C.blue : C.light, .065);
     }
   } },
-  { name: 'Bell curve', bg: P.paper, draw() {
-    fill([...curve(x => .3 - .5 * Math.exp(-((x / .16) ** 2)), -.45, .45), [.45, .3], [-.45, .3]], P.mustard);
-    line([[0, .3], [0, -.3]], P.ink, 1, .8);
-    line([[-.45, .3], [.45, .3]], P.ink, 1, .6);
+  { name: 'Partitions', bg: C.navy, draw() {
+    let x = -.5;
+    [[.12, C.rust], [.26, C.pink], [.08, C.navy], [.22, C.blue], [.2, C.pink], [.12, C.rust]].forEach(([w, c]) => { rect(x, -.5, w, 1, c); x += w; });
   } },
-  { name: 'Table', bg: P.paper, draw() {
-    const r = rng(12), xs = [-.38, -.08, .18], ws = [.24, .2, .18];
-    g.fillStyle = P.clay; g.fillRect(-.12, -.32 + 3 * .13 - .045, .28, .09);
-    for (let row = 0; row < 6; row++) xs.forEach((x, c) => {
-      g.save(); g.globalAlpha = row === 0 ? .9 : .5; g.fillStyle = P.ink;
-      g.fillRect(x, -.32 + row * .13 - (row === 0 ? .016 : .011), ws[c] * (row === 0 ? 1 : .45 + .55 * r()), row === 0 ? .032 : .022);
-      g.restore();
-    });
-  } },
-  { name: 'Pipeline', bg: P.blue, draw() {
+  { name: 'Pipeline', bg: C.blue, draw() {
     const cols = [[[-.36, -.2], [-.36, .15]], [[0, -.28], [0, 0], [0, .26]], [[.34, 0]]];
-    const edges = [[0, 0, 1, 0], [0, 0, 1, 1], [0, 1, 1, 1], [0, 1, 1, 2], [1, 0, 2, 0], [1, 1, 2, 0], [1, 2, 2, 0]];
-    edges.forEach(([c1, i1, c2, i2]) => {
+    [[0, 0, 1, 0], [0, 0, 1, 1], [0, 1, 1, 1], [0, 1, 1, 2], [1, 0, 2, 0], [1, 1, 2, 0], [1, 2, 2, 0]].forEach(([c1, i1, c2, i2]) => {
       const [x1, y1] = cols[c1][i1], [x2, y2] = cols[c2][i2];
-      g.save(); g.strokeStyle = P.ivory; g.globalAlpha = .8; g.lineWidth = HL; g.beginPath();
-      g.moveTo(x1, y1); g.bezierCurveTo(x1 + .14, y1, x2 - .14, y2, x2, y2); g.stroke(); g.restore();
+      g.strokeStyle = C.navy; g.lineWidth = .014; g.beginPath();
+      g.moveTo(x1, y1); g.bezierCurveTo(x1 + .14, y1, x2 - .14, y2, x2, y2); g.stroke();
     });
-    cols.slice(0, 2).flat().forEach(([x, y]) => { g.fillStyle = P.ivory; g.fillRect(x - .035, y - .035, .07, .07); });
-    dot(.34, 0, .055, P.clay);
+    cols.slice(0, 2).flat().forEach(([x, y]) => rect(x - .04, y - .04, .08, .08, C.navy));
+    dot(.34, 0, .06, C.rust);
   } },
-  { name: 'Medallion', bg: P.paper, draw() {
-    diamond(0, .2, .72, .28, P.clay); diamond(0, .02, .72, .28, P.blue); diamond(0, -.16, .72, .28, P.mustard);
-  } },
-  { name: 'Join', bg: P.paper, draw() {
-    dot(-.12, 0, .26, P.blue);
-    g.globalCompositeOperation = 'multiply'; dot(.12, 0, .26, P.clay); g.globalCompositeOperation = 'source-over';
-  } },
-  { name: 'Stream', bg: P.ink, draw() {
-    for (let i = 0; i < 7; i++) {
-      const off = -.3 + i * .1;
-      line(curve(x => off + .035 * Math.sin(x * 10 + i * .7)), i === 3 ? P.clay : P.ivory, i === 3 ? 2.4 : 1.2, i === 3 ? 1 : .7);
-    }
-  } },
-  { name: 'Treemap', bg: P.ivory, draw() {
-    [[-.5, -.5, .58, .62, P.clay], [.08, -.5, .42, .3, P.mustard], [.08, -.2, .42, .32, P.blue],
-     [-.5, .12, .3, .38, P.sage], [-.2, .12, .28, .38, P.blush], [.08, .12, .42, .38, P.sand]]
-      .forEach(([x, y, w, h, c]) => { g.fillStyle = c; g.fillRect(x + .006, y + .006, w - .012, h - .012); });
-  } },
-  { name: 'Embeddings', bg: P.paper, draw() {
-    const r = rng(18);
-    [[-.18, -.15, P.clay], [.2, -.05, P.blue], [-.02, .22, P.sage]].forEach(([cx, cy, c]) => {
-      for (let i = 0; i < 14; i++) dot(cx + gauss(r) * .065, cy + gauss(r) * .065, .022, c);
-    });
-  } },
-  { name: 'Attention', bg: P.paper, draw() {
-    const r = rng(19);
-    for (let i = 0; i < 8; i++) for (let j = 0; j <= i; j++) {
-      g.save(); g.globalAlpha = i === j ? .95 : .12 + .6 * r() * Math.exp(-(i - j) * .25);
-      g.fillStyle = P.clay; g.fillRect(-.44 + j * .11, -.44 + i * .11, .095, .095); g.restore();
-    }
-  } },
-  { name: 'Neural layers', bg: P.mist, draw() {
-    const xs = [-.33, -.11, .11, .33], counts = [3, 5, 5, 2];
-    const layers = counts.map((n, l) => Array.from({ length: n }, (_, k) => [xs[l], (k - (n - 1) / 2) * .15]));
-    for (let l = 0; l < 3; l++) layers[l].forEach(a => layers[l + 1].forEach(b => line([a, b], P.ink, 1, .4)));
-    layers.forEach((ns, l) => ns.forEach(([x, y]) => dot(x, y, .03, l === 3 ? P.clay : P.ink)));
-  } },
-  { name: 'Area hills', bg: P.blush, draw() {
-    dot(.24, -.24, .08, P.mustard);
-    fill([...curve(x => -.05 + .12 * Math.sin(x * 5 + 1)), [.5, .5], [-.5, .5]], P.blue);
-    fill([...curve(x => .15 + .1 * Math.sin(x * 7 + .3)), [.5, .5], [-.5, .5]], P.sage);
-  } },
-  { name: 'Starburst', bg: P.mustard, draw() {
-    const r = rng(22);
-    for (let k = 0; k < 40; k++) {
-      const a = k / 40 * TAU, len = .14 + .26 * r();
-      line([[Math.cos(a) * .08, Math.sin(a) * .08], [Math.cos(a) * len, Math.sin(a) * len]], P.ink, 1.4);
-    }
-    dot(0, 0, .06, P.clay);
-  } },
-  { name: 'Funnel', bg: P.paper, draw() {
-    [[.8, P.mist], [.62, P.blue], [.46, P.sage], [.3, P.mustard], [.16, P.clay]].forEach(([w, c], i) => {
-      g.fillStyle = c; g.fillRect(-w / 2, -.35 + i * .14, w, .1);
-    });
-  } },
-  { name: 'Gauge', bg: P.sage, draw() {
-    g.lineCap = 'butt';
-    g.strokeStyle = P.ivory; g.lineWidth = .08; g.beginPath(); g.arc(0, .15, .32, Math.PI, TAU); g.stroke();
-    g.strokeStyle = P.clay; g.beginPath(); g.arc(0, .15, .32, Math.PI, Math.PI * 1.68); g.stroke();
-    const a = Math.PI * 1.68;
-    line([[0, .15], [Math.cos(a) * .3, .15 + Math.sin(a) * .3]], P.ink, 2.2);
-    dot(0, .15, .04, P.ink);
-  } },
-  { name: 'Database', bg: P.paper, draw() {
+  { name: 'Database', bg: C.navy, draw() {
     const rx = .3, ry = .09, th = .1;
     [.24, .06, -.12].forEach(y => {
-      g.fillStyle = P.blue;
-      g.beginPath(); g.ellipse(0, y, rx, ry, 0, 0, TAU); g.fill();
+      g.fillStyle = C.blue; g.beginPath(); g.ellipse(0, y, rx, ry, 0, 0, TAU); g.fill();
       g.fillRect(-rx, y - th, rx * 2, th);
-      g.fillStyle = P.mist; g.beginPath(); g.ellipse(0, y - th, rx, ry, 0, 0, TAU); g.fill();
+      g.fillStyle = C.pink; g.beginPath(); g.ellipse(0, y - th, rx, ry, 0, 0, TAU); g.fill();
     });
   } },
-  { name: 'Binary', bg: P.ink, draw() {
-    const r = rng(26);
+  { name: 'Index tree', bg: C.navy, draw() {
+    const root = [0, -.32], l1 = [[-.2, -.08], [.2, -.08]], l2 = [[-.32, .16], [-.1, .16], [.1, .16], [.32, .16]];
+    l1.forEach(n => elbow(root, n, C.light, .014, .7));
+    l2.forEach((n, i) => elbow(l1[i >> 1], n, C.light, .014, .7));
+    elbow(root, l1[1], C.rust, .03, 1); elbow(l1[1], l2[2], C.rust, .03, 1);
+    [root, ...l1, ...l2].forEach(([x, y]) => dot(x, y, .035, C.light));
+    dot(...l2[2], .05, C.rust);
+  } },
+  { name: 'Attention', bg: C.navy, draw() {
+    const r = rng(23);
+    for (let i = 0; i < 8; i++) for (let j = 0; j <= i; j++) {
+      g.save(); g.globalAlpha = i === j ? 1 : .15 + .65 * r() * Math.exp(-(i - j) * .25);
+      rect(-.44 + j * .11, -.44 + i * .11, .095, .095, C.rust); g.restore();
+    }
+  } },
+  { name: 'Neural layers', bg: C.pink, draw() {
+    const xs = [-.33, -.11, .11, .33], counts = [3, 5, 5, 2];
+    const layers = counts.map((n, l) => Array.from({ length: n }, (_, k) => [xs[l], (k - (n - 1) / 2) * .15]));
+    for (let l = 0; l < 3; l++) layers[l].forEach(a => layers[l + 1].forEach(b => line([a, b], C.navy, .01, .45)));
+    layers.forEach((ns, l) => ns.forEach(([x, y]) => dot(x, y, .035, l === 3 ? C.rust : C.navy)));
+  } },
+  { name: 'Embeddings', bg: C.navy, draw() {
+    const r = rng(25);
+    [[-.18, -.15, C.rust], [.2, -.05, C.blue], [-.02, .22, C.pink]].forEach(([cx, cy, c]) => {
+      for (let i = 0; i < 14; i++) dot(cx + gauss(r) * .065, cy + gauss(r) * .065, .025, c);
+    });
+  } },
+  { name: 'Vector field', bg: C.navy, draw() {
+    for (let i = 0; i < 6; i++) for (let j = 0; j < 6; j++) {
+      const x = -.4 + i * .16, y = -.4 + j * .16, a = Math.atan2(y, x) + Math.PI / 2;
+      const hx = x + Math.cos(a) * .045, hy = y + Math.sin(a) * .045;
+      line([[x - Math.cos(a) * .045, y - Math.sin(a) * .045], [hx, hy]], C.light, .018);
+      dot(hx, hy, .018, C.rust);
+    }
+  } },
+  { name: 'Binary', bg: C.navy, draw() {
+    const r = rng(27);
     for (let row = 0; row < 4; row++) for (let j = 0; j < 6; j++) {
       const x = -.3 + j * .12, y = -.27 + row * .18;
-      if (r() > .5) { g.fillStyle = P.ivory; g.beginPath(); g.arc(x, y + .03, .05, Math.PI, 0); g.fill(); }
-      else { g.save(); g.strokeStyle = P.ivory; g.lineWidth = HL * 1.5; g.beginPath(); g.arc(x, y, .04, 0, TAU); g.stroke(); g.restore(); }
+      if (r() > .5) { g.fillStyle = C.light; g.beginPath(); g.arc(x, y + .03, .05, Math.PI, 0); g.fill(); }
+      else ring(x, y, .04, C.light, .018);
     }
   } },
-  { name: 'Index tree', bg: P.paper, draw() {
-    const elbow = ([x1, y1], [x2, y2], c, w, a) => line([[x1, y1], [x1, (y1 + y2) / 2], [x2, (y1 + y2) / 2], [x2, y2]], c, w, a);
-    const root = [0, -.32], l1 = [[-.2, -.08], [.2, -.08]], l2 = [[-.32, .16], [-.1, .16], [.1, .16], [.32, .16]];
-    l1.forEach(n => elbow(root, n, P.ink, 1, .6));
-    l2.forEach((n, i) => elbow(l1[i >> 1], n, P.ink, 1, .6));
-    elbow(root, l1[1], P.clay, 2.4, 1); elbow(l1[1], l2[2], P.clay, 2.4, 1);
-    [root, ...l1, ...l2].forEach(([x, y]) => dot(x, y, .03, P.ink));
-    dot(...l2[2], .045, P.clay);
-  } },
-  { name: 'Sorted', bg: P.mist, draw() {
-    for (let i = 0; i < 5; i++) {
-      const x = -.42 + i * .16, r = .1 + .065 * i;
-      g.fillStyle = i % 2 ? P.mustard : P.clay; g.beginPath(); g.moveTo(x, .38); g.arc(x, .38, r, -Math.PI / 2, 0); g.closePath(); g.fill();
-    }
-  } },
-  { name: 'Sampling', bg: P.paper, draw() {
-    line([[-.45, 0], [.45, 0]], P.ink, 1, .4);
-    line(curve(x => -.25 * Math.sin(x * TAU * 1.1), -.45, .45), P.ink, 1, .6);
-    for (let i = 0; i < 12; i++) {
-      const x = -.42 + i * .0763, y = -.25 * Math.sin(x * TAU * 1.1);
-      line([[x, 0], [x, y]], P.ink, 1.2); dot(x, y, .022, P.clay);
-    }
-  } },
-  { name: 'Halftone', bg: P.sand, draw() {
+  { name: 'Halftone', bg: C.navy, draw() {
     for (let i = 0; i <= 10; i++) for (let j = 0; j <= 10; j++) {
       const x = -.45 + i * .09, y = -.45 + j * .09;
       const v = (i + j) / 20 * .7 + .3 * Math.exp(-((x - .15) ** 2 + (y + .1) ** 2) / .03);
-      dot(x, y, .045 * v, P.ink);
+      dot(x, y, .045 * v, C.light);
     }
+  } },
+  { name: 'Starburst', bg: C.rust, draw() {
+    const r = rng(29);
+    for (let k = 0; k < 40; k++) {
+      const a = k / 40 * TAU, len = .14 + .26 * r();
+      line([[Math.cos(a) * .09, Math.sin(a) * .09], [Math.cos(a) * len, Math.sin(a) * len]], C.navy, .02);
+    }
+    dot(0, 0, .07, C.pink);
+  } },
+  { name: 'Gauge', bg: C.blue, draw() {
+    g.lineCap = 'butt';
+    g.strokeStyle = C.pink; g.lineWidth = .08; g.beginPath(); g.arc(0, .15, .32, Math.PI, TAU); g.stroke();
+    g.strokeStyle = C.rust; g.beginPath(); g.arc(0, .15, .32, Math.PI, Math.PI * 1.68); g.stroke();
+    const a = Math.PI * 1.68;
+    line([[0, .15], [Math.cos(a) * .3, .15 + Math.sin(a) * .3]], C.navy, .03);
+    dot(0, .15, .045, C.navy);
+  } },
+  { name: 'Sorted', bg: C.navy, draw() {
+    for (let i = 0; i < 5; i++) {
+      const x = -.42 + i * .16, r = .1 + .065 * i;
+      g.fillStyle = i % 2 ? C.pink : C.rust; g.beginPath(); g.moveTo(x, .38); g.arc(x, .38, r, -Math.PI / 2, 0); g.closePath(); g.fill();
+    }
+  } },
+  { name: 'Bell curve', bg: C.navy, draw() {
+    fill([...curve(x => .3 - .5 * Math.exp(-((x / .16) ** 2)), -.45, .45), [.45, .3], [-.45, .3]], C.pink);
+    line([[0, .3], [0, -.3]], C.rust, .022);
+    line([[-.45, .3], [.45, .3]], C.light, .012, .5);
+  } },
+  { name: 'Area hills', bg: C.pink, draw() {
+    dot(.24, -.24, .08, C.rust);
+    fill([...curve(x => -.05 + .12 * Math.sin(x * 5 + 1)), [.5, .5], [-.5, .5]], C.blue);
+    fill([...curve(x => .15 + .1 * Math.sin(x * 7 + .3)), [.5, .5], [-.5, .5]], C.navy);
+  } },
+  { name: 'Funnel', bg: C.navy, draw() {
+    [[.8, C.blue], [.62, C.pink], [.46, C.rust], [.3, C.pink], [.16, C.light]].forEach(([w, c], i) => rect(-w / 2, -.35 + i * .14, w, .1, c));
   } },
 ];
 
@@ -256,7 +272,7 @@ const canvases = TILES.map((tile, i) => {
   const fig = document.createElement('figure');
   const cv = document.createElement('canvas');
   const cap = document.createElement('figcaption');
-  cap.innerHTML = `<b>${String(i + 1).padStart(2, '0')}</b>${tile.name}`;
+  cap.innerHTML = `<b>${String(i + 1).padStart(2, '0')}</b>${tile.name}${tile.tag ? `<span>${tile.tag}</span>` : ''}`;
   fig.append(cv, cap); gridEl.append(fig);
   return cv;
 });
@@ -266,7 +282,7 @@ function render() {
   canvases.forEach((cv, i) => {
     const S = cv.clientWidth;
     cv.width = cv.height = Math.round(S * dpr);
-    g = cv.getContext('2d'); HL = 1.2 / S;
+    g = cv.getContext('2d');
     g.setTransform(S * dpr, 0, 0, S * dpr, S * dpr / 2, S * dpr / 2);
     g.fillStyle = TILES[i].bg; g.fillRect(-.5, -.5, 1, 1);
     TILES[i].draw();
