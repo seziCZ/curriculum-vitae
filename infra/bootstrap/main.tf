@@ -1,18 +1,10 @@
 # Creates the S3 bucket that holds the Terraform state of the main configuration.
 # This module keeps its own state locally and is applied once, by hand.
 
-provider "aws" {
-  region = var.region
-}
-
-data "aws_caller_identity" "current" {}
-
-locals {
-  bucket_name = coalesce(var.bucket_name, "sezima-tfstate-${data.aws_caller_identity.current.account_id}")
-}
-
 resource "aws_s3_bucket" "state" {
-  bucket = local.bucket_name
+  # The name must be globally unique. If the apply fails with BucketAlreadyExists,
+  # change it here and in the backend block in infra/site/versions.tf.
+  bucket = "sezima-curriculum-vitae-tfstate"
 
   lifecycle {
     prevent_destroy = true

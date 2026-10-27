@@ -2,7 +2,7 @@
 # so a second provider with an alias is used for the certificate only.
 # The credentials come from the AWS_PROFILE environment variable.
 provider "aws" {
-  region = var.region
+  region = "eu-west-1"
 }
 
 provider "aws" {

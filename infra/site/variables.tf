@@ -1,4 +1,3 @@
-# Inputs of the site configuration.
 variable "domain" {
   description = "Apex domain of the page, for example example.com. Use lowercase, without www. and without a trailing dot."
   type        = string
@@ -15,8 +14,8 @@ variable "hosted_zone_id" {
   default     = null
 }
 
-variable "region" {
-  description = "AWS region for the site bucket."
-  type        = string
-  default     = "eu-west-1"
+locals {
+  name    = replace(var.domain, ".", "-")
+  hosts   = [var.domain, "www.${var.domain}"]
+  zone_id = coalesce(var.hosted_zone_id, one(data.aws_route53_zone.site[*].zone_id))
 }

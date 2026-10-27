@@ -1,8 +1,7 @@
-# The private S3 bucket with the site files. Only the CloudFront distribution can read it.
 data "aws_caller_identity" "current" {}
 
 resource "aws_s3_bucket" "site" {
-  bucket = "${replace(var.domain, ".", "-")}-site-${data.aws_caller_identity.current.account_id}"
+  bucket = "${local.name}-site-${data.aws_caller_identity.current.account_id}"
 }
 
 resource "aws_s3_bucket_public_access_block" "site" {
@@ -45,5 +44,6 @@ resource "aws_s3_bucket_policy" "site" {
     ]
   })
 
+  # S3 rejects the policy while the public access block is being applied.
   depends_on = [aws_s3_bucket_public_access_block.site]
 }

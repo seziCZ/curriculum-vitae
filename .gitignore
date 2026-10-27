@@ -1,4 +1,5 @@
 node_modules/
 dist/
 .terraform/
-*.tfplan
+*.tfstate.backup
+crash.log

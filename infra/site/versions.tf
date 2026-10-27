@@ -1,5 +1,3 @@
-# Terraform and provider versions, and the S3 backend that stores the state.
-# The state bucket name is passed at init: terraform init -backend-config="bucket=<state_bucket>"
 terraform {
   required_version = ">= 1.10"
 
@@ -11,6 +9,9 @@ terraform {
   }
 
   backend "s3" {
+    # The name must be globally unique. If the bootstrap apply fails with BucketAlreadyExists,
+    # change it here and in infra/bootstrap/main.tf.
+    bucket       = "sezima-curriculum-vitae-tfstate"
     key          = "site/terraform.tfstate"
     region       = "eu-west-1"
     use_lockfile = true

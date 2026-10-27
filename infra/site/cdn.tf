@@ -1,4 +1,3 @@
-# The CloudFront distribution, its access to the bucket, and the function that redirects www to the apex domain.
 data "aws_cloudfront_cache_policy" "caching_optimized" {
   name = "Managed-CachingOptimized"
 }
@@ -8,7 +7,7 @@ data "aws_cloudfront_response_headers_policy" "security_headers" {
 }
 
 resource "aws_cloudfront_origin_access_control" "site" {
-  name                              = "${replace(var.domain, ".", "-")}-site"
+  name                              = "${local.name}-site"
   description                       = "Lets CloudFront read the private site bucket."
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
@@ -16,7 +15,7 @@ resource "aws_cloudfront_origin_access_control" "site" {
 }
 
 resource "aws_cloudfront_function" "redirect_www" {
-  name    = "${replace(var.domain, ".", "-")}-redirect-www"
+  name    = "${local.name}-redirect-www"
   comment = "Redirects www to the apex domain."
   runtime = "cloudfront-js-2.0"
   publish = true
@@ -27,7 +26,7 @@ resource "aws_cloudfront_distribution" "site" {
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "Site for ${var.domain}"
-  aliases             = [var.domain, "www.${var.domain}"]
+  aliases             = local.hosts
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
 
