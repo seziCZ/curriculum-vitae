@@ -60,7 +60,7 @@ test('first frame deep in the page shows the finished stack', () => {
   for (const W of [1440, 1866]) {
     const { ctx, log, scene, dpr } = setup(W);
     const calls = frame(ctx, scene, 0, 3400);
-    for (const name of ['COLLECT', 'REFINE', 'ACT']) assert.ok(log.includes(name), `${name} missing at ${W}`);
+    for (const name of ['INGEST', 'GOVERN', 'ACT']) assert.ok(log.includes(name), `${name} missing at ${W}`);
     // Every stack tile is drawn at once, without the opening, and nothing else is drawn.
     const { layers } = scene.debug();
     assert.equal(tileCenters(calls, dpr).length, layers.flat().length, `tile count at ${W}`);
@@ -129,7 +129,7 @@ test('reduced motion shows the whole wall at once, then fades to the stack in 30
   log.length = 0;
   const done = tileCenters(frame(ctx, scene, 1300, 3400), dpr);
   assert.equal(done.length, layers.flat().length);
-  for (const name of ['COLLECT', 'REFINE', 'ACT']) assert.ok(log.includes(name), `${name} missing`);
+  for (const name of ['INGEST', 'GOVERN', 'ACT']) assert.ok(log.includes(name), `${name} missing`);
 });
 
 test('odd layout values give no NaN', () => {

@@ -2,9 +2,9 @@ export const C = { navy: '#1c2030', rust: '#b4634a', blue: '#6e8ba5', pink: '#dc
 export const MUTED = '#b4b8c2';
 
 export const LAYERS = [
-  { name: 'Collect', sentence: 'Everything else depends on data that arrives complete and on time.', col: C.rust, dark: '#7e4434' },
-  { name: 'Refine', sentence: 'AI is only as good as the data it can trust.', col: C.blue, dark: '#4b6378' },
-  { name: 'Act', sentence: 'Data creates value only when it changes what people and systems do.', col: C.pink, dark: '#ad978d' },
+  { name: 'Ingest', sentence: 'Everything you build depends on data that arrives complete and on time.', col: C.rust, dark: '#7e4434' },
+  { name: 'Govern', sentence: 'People trust data only when its meaning, quality and access are clear.', col: C.blue, dark: '#4b6378' },
+  { name: 'Act', sentence: 'Apps, reports and AI agents turn this data into decisions and actions.', col: C.pink, dark: '#ad978d' },
 ];
 
 export const NET_NODES = [[-.3, -.28], [.05, -.33], [.32, -.12], [-.12, -.02], [.2, .2], [-.3, .25], [.02, .32]];

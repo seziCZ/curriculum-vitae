@@ -69,7 +69,7 @@ The first screen is a wall of square tiles, as in the prototype. The tiles have 
 - The hero is 85% of the screen height, so the top of the About section is visible below it.
 - Desktop: when the visitor scrolls, the text column (left half, opaque navy) slides up over the wall. At the same time, the tiles in the left half leave the screen, each by the shortest way out. The wall stays only in the right half, which is sticky.
 - While About passes, the tiles in the right half build an isometric stack of three layers at once. Tiles that are not needed leave. No tile may stay behind outside the stack.
-- After the stack is complete, the layer labels appear one by one, spread over the rest of the page down to Posts: first Collect, then Refine, then Act. Each label stays visible once it appears.
+- After the stack is complete, the layer labels appear one by one, spread over the rest of the page down to Posts: first Ingest, then Govern, then Act. Each label stays visible once it appears.
 - The stack and its labels are one group, centered in the right half, with a margin of at least 48 pixels on both sides. The labels have a fixed width of 220 pixels.
 - Phone: the wall shrinks to a band under the menu, about 30% of the screen height, and the stack builds in that band. The labels are not shown on a phone in the prototype. The builder may show the current label under the band, if it fits.
 
@@ -79,11 +79,11 @@ From the bottom to the top. Each label is a title and one sentence.
 
 | Layer | Color | Sentence |
 | --- | --- | --- |
-| Collect | clay | Everything else depends on data that arrives complete and on time. |
-| Refine | blue | AI is only as good as the data it can trust. |
-| Act | pink | Data creates value only when it changes what people and systems do. |
+| Ingest | clay | Everything you build depends on data that arrives complete and on time. |
+| Govern | blue | People trust data only when its meaning, quality and access are clear. |
+| Act | pink | Apps, reports and AI agents turn this data into decisions and actions. |
 
-The layers stand for Tomáš's expertise, not for the medallion architecture: Collect is cloud platforms, IoT and streaming; Refine is data architecture and the lakehouse; Act is generative and agentic AI.
+The layers stand for Tomáš's expertise, not for the medallion architecture: Ingest is cloud platforms, IoT and streaming; Govern is data architecture, the lakehouse, quality and access; Act is apps, reports and generative and agentic AI. The titles use the industry verbs: ingestion is a stage of the data engineering lifecycle (Reis and Housley), and Databricks uses "ingest" and "govern" for Lakeflow and Unity Catalog. Governance and clear meaning are the core of "AI-ready data" (Gartner, Forrester, 2025 to 2026). Agents are one of the users in Act, not the only one.
 
 ## 6. Content
 
