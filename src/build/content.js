@@ -80,6 +80,48 @@ ${sorted.map(renderEvent).join('\n')}
 </ol>`;
 }
 
-export function renderPage(template, { events = [], today } = {}) {
-  return template.replace('<!--@community-->', () => renderCommunity(events, today));
+export function validatePost(p) {
+  const errors = [];
+  if (!p || typeof p !== 'object') return ['post must be an object'];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date ?? '')) errors.push('date must be YYYY-MM-DD');
+  if (!isText(p.text)) errors.push('text is required');
+  if (!isText(p.url) || !/^https:\/\/([a-z0-9-]+\.)*linkedin\.com(\/|$)/i.test(p.url)) errors.push('url must be a linkedin.com link');
+  if (p.image !== undefined && !isText(p.image)) errors.push('image must be text when present');
+  return errors;
+}
+
+export function loadPosts(dir) {
+  if (!existsSync(dir)) return [];
+  const posts = readdirSync(dir).filter(f => f.endsWith('.json')).sort().map(name => {
+    let p;
+    try { p = JSON.parse(readFileSync(join(dir, name), 'utf8')); }
+    catch (err) { throw new Error(`${name}: ${err.message}`); }
+    const errors = validatePost(p);
+    if (errors.length) throw new Error(`${name}: ${errors.join('; ')}`);
+    return p;
+  });
+  return posts.sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export function renderPosts(posts) {
+  return [...posts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3).map(p => {
+    const image = p.image ? `<img src="posts/${esc(p.image)}" alt="" loading="lazy">` : '';
+    return `<div class="card">
+  <div class="when">${formatDate(p.date)}</div>
+  <p>${esc(p.text)}</p>
+  ${image}
+  <a href="${esc(p.url)}">View on LinkedIn &rarr;</a>
+</div>`;
+  }).join('\n');
+}
+
+export function renderPage(template, { events = [], posts = [], today } = {}) {
+  let html = template.replace('<!--@community-->', () => renderCommunity(events, today));
+  if (posts.length === 0) {
+    html = html.replace(/<!--@posts-section-->[\s\S]*?<!--\/@posts-section-->\n?/, '')
+      .replace(/<!--@posts-nav-->[\s\S]*?<!--\/@posts-nav-->/, '');
+  } else {
+    html = html.replace('<!--@posts-->', () => renderPosts(posts));
+  }
+  return html.replace(/<!--\/?@posts-(section|nav)-->\n?/g, '');
 }
