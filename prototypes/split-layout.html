@@ -154,18 +154,20 @@ footer { color:var(--muted); font-size:13px; padding:10vh 0 2vh; }
 const C = { navy:'#1c2030', rust:'#b4634a', blue:'#6e8ba5', pink:'#dcc5ba', light:'#e6d8ce' };
 const PAL = [C.navy, C.rust, C.blue, C.pink];
 const LAYER = [
-  { name:'Bronze', sub:'raw data', col:C.rust, dark:'#7e4434' },
-  { name:'Silver', sub:'cleaned and joined', col:C.blue, dark:'#4b6378' },
-  { name:'Gold', sub:'ready for AI', col:C.pink, dark:'#ad978d' },
+  { name:'Collect', sub:'Everything above depends on data that arrives complete and on time.', col:C.rust, dark:'#7e4434' },
+  { name:'Refine', sub:'AI is only as good as the data it can trust.', col:C.blue, dark:'#4b6378' },
+  { name:'Act', sub:'Data creates value only when it changes what people and systems do.', col:C.pink, dark:'#ad978d' },
 ];
 const COS = Math.cos(Math.PI / 6), SIN = 0.5, NAV = 56;
+// Layer labels: gap between the stack and the label, label text width, and the free margin around the group.
+const LABEL_GAP = 46, LABEL_W = 220, PANEL_MARGIN = 48;
 const DATA_TYPES = ['griddot', 'scatter', 'pixels', 'tokens', 'network'];
 const NET_NODES = [[-.3, -.28], [.05, -.33], [.32, -.12], [-.12, -.02], [.2, .2], [-.3, .25], [.02, .32]];
 const NET_EDGES = [[0, 1], [0, 3], [1, 2], [1, 3], [3, 4], [2, 4], [3, 5], [5, 6], [4, 6]];
 const NET_HUB = 3;
 
 const cv = document.getElementById('c'), ctx = cv.getContext('2d');
-const topEl = document.getElementById('top'), aboutEl = document.getElementById('about'), workEl = document.getElementById('work');
+const topEl = document.getElementById('top'), aboutEl = document.getElementById('about'), postsEl = document.getElementById('posts');
 const hint = document.getElementById('hint');
 
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -263,9 +265,14 @@ function build() {
   });
 
   const n = Math.max(2, Math.floor(Math.sqrt(kept.length / 3)));
-  const Hs = Math.min(panel.w * (mobile ? .5 : .55) / (2 * COS), panel.h * .8 / 2.4);
+  // On a desktop, the stack and its labels are one group, centered in the panel with a margin on both sides.
+  const labelSpace = LABEL_GAP + LABEL_W;
+  const Hs = mobile
+    ? Math.min(panel.w * .5 / (2 * COS), panel.h * .8 / 2.4)
+    : Math.min((panel.w - 2 * PANEL_MARGIN - labelSpace) / (2 * COS), panel.h * .8 / 2.4);
   const c = Hs / n, L = Hs * .62, T = Hs * .07;
-  const cx = mobile ? W / 2 : panel.x + panel.w * .42;
+  const hw = Hs * COS;
+  const cx = mobile ? W / 2 : panel.x + (panel.w - (2 * hw + labelSpace)) / 2 + hw;
   const total = Hs + 2 * L + T;
   const cy = mobile ? panel.y + panel.h / 2 : (H + NAV) / 2;
   const y0 = cy - total / 2;
@@ -375,7 +382,7 @@ function drawLeaving(tl, a, t) {
   drawTile(tl, [s, 0, 0, s, lerp(tl.hx, tl.out[0], q), lerp(tl.hy, tl.out[1], q)], 1 - q);
 }
 
-// Tiles inside the panel turn into the lakehouse while the visitor reads About and Work.
+// Tiles inside the panel build the whole stack at once. p is the progress of that build.
 function drawFlying(tl, p, t) {
   const grow = ease(clamp((t - tl.at) / .35));
   if (grow <= 0) return;
@@ -411,15 +418,23 @@ function drawTint(l, a) {
   poly([T, R, B, L], LAYER[l].col);
 }
 
-function drawLabels(a) {
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = a;
-  for (let l = 0; l < 3; l++) {
-    const { R } = slabPoints(l), x = R[0] + 28, y = R[1] + lay.T / 2;
-    if (x + 140 > W) continue;
-    ctx.fillStyle = LAYER[l].col; ctx.fillRect(x, y - 16, 10, 10);
-    ctx.fillStyle = C.light; ctx.font = '600 15px "Space Grotesk", sans-serif'; ctx.fillText(LAYER[l].name.toUpperCase(), x + 18, y - 7);
-    ctx.fillStyle = '#b4b8c2'; ctx.font = '400 14px "Space Grotesk", sans-serif'; ctx.fillText(LAYER[l].sub, x + 18, y + 13);
+function wrapText(text, maxW) {
+  const lines = [''];
+  for (const word of text.split(' ')) {
+    const next = lines[lines.length - 1] ? lines[lines.length - 1] + ' ' + word : word;
+    if (ctx.measureText(next).width > maxW && lines[lines.length - 1]) lines.push(word); else lines[lines.length - 1] = next;
   }
+  return lines;
+}
+
+function drawLabel(l, a) {
+  if (mobile) return;
+  const { R } = slabPoints(l), x = R[0] + LABEL_GAP - 18, y = R[1] + lay.T / 2, maxW = LABEL_W;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = a;
+  ctx.fillStyle = LAYER[l].col; ctx.fillRect(x, y - 16, 10, 10);
+  ctx.fillStyle = C.light; ctx.font = '600 15px "Space Grotesk", sans-serif'; ctx.fillText(LAYER[l].name.toUpperCase(), x + 18, y - 7);
+  ctx.fillStyle = '#b4b8c2'; ctx.font = '400 14px "Space Grotesk", sans-serif';
+  wrapText(LAYER[l].sub, maxW).forEach((line, i) => ctx.fillText(line, x + 18, y + 13 + i * 19));
 }
 
 // Small, calm changes keep the wall alive: a shape turns, a data point moves, the next token is chosen.
@@ -447,10 +462,12 @@ function frame(now) {
   const t = (now - start) / 1000;
   const sy = window.scrollY;
   // a: the wall moves into the panel while the hero scrolls away.
-  // b: the panel turns into the lakehouse while About and Work pass by.
+  // b: progress from About to the end of Posts. In the first quarter the whole stack builds at once,
+  // then the labels appear one per quarter: Collect, Refine, Act.
   const a = clamp(sy / (topEl.offsetHeight * .8));
-  const bStart = pageTop(aboutEl) - H * .4, bEnd = pageTop(workEl) + workEl.offsetHeight - H * .8;
+  const bStart = pageTop(aboutEl) - H * .4, bEnd = pageTop(postsEl) + postsEl.offsetHeight - H * .8;
   const b = clamp((sy - bStart) / (bEnd - bStart));
+  const build = clamp(b / .25);
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1;
   ctx.clearRect(0, 0, W, H);
@@ -461,14 +478,17 @@ function frame(now) {
   idle(now);
 
   for (const tl of leaving) drawLeaving(tl, a, t);
-  const slabQ = ease(clamp((b - .55) / .25));
-  for (const tl of extras) drawFlying(tl, b, t);
+  const slabQ = ease(clamp((build - .55) / .25));
+  for (const tl of extras) drawFlying(tl, build, t);
   for (let l = 0; l < 3; l++) {
     if (slabQ > 0) drawSides(l, slabQ);
-    for (const tl of layers[l]) drawFlying(tl, b, t);
+    for (const tl of layers[l]) drawFlying(tl, build, t);
     if (slabQ > 0) drawTint(l, slabQ);
   }
-  if (slabQ > 0) drawLabels(slabQ);
+  for (let l = 0; l < 3; l++) {
+    const labelQ = ease(clamp((b - .25 - l * .25) / .12));
+    if (labelQ > 0) drawLabel(l, labelQ);
+  }
 
   hint.style.opacity = clamp((t - 2) / .6) * (1 - clamp(sy / 80));
   requestAnimationFrame(frame);
