@@ -24,3 +24,13 @@ test('build puts one next-event slot after the Community intro', async () => {
   assert.equal(html.match(/class="next-event"/g).length, 1);
   assert.ok(html.indexOf('class="next-event"') > html.indexOf('I help organize both groups'));
 });
+
+test('build has the 3 layer sentences as text in About', async () => {
+  const out = mkdtempSync(join(tmpdir(), 'page-'));
+  await build(out, '2026-10-27');
+  const html = readFileSync(join(out, 'index.html'), 'utf8');
+  const about = html.slice(html.indexOf('id="about"'), html.indexOf('id="work"'));
+  assert.match(about, /Collect: Everything else depends on data that arrives complete and on time\./);
+  assert.match(about, /Refine: AI is only as good as the data it can trust\./);
+  assert.match(about, /Act: Data creates value only when it changes what people and systems do\./);
+});
