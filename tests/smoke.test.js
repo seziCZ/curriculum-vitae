@@ -67,6 +67,16 @@ test('first frame deep in the page shows the finished stack', () => {
   }
 });
 
+test('a narrow desktop draws the finished stack without labels', () => {
+  for (const reducedMotion of [false, true]) {
+    const { ctx, log, scene, dpr } = setup(1024, { reducedMotion });
+    frame(ctx, scene, 0, 3400);
+    const calls = frame(ctx, scene, 1000, 3400);
+    assert.equal(log.length, 0, `labels drawn, reduced motion ${reducedMotion}`);
+    assert.equal(tileCenters(calls, dpr).length, scene.debug().layers.flat().length);
+  }
+});
+
 test('resize from desktop to phone mid-scroll leaves no stray tiles', () => {
   const { ctx, canvas, scene, dpr } = setup(1440);
   let now = 0;

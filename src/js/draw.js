@@ -134,9 +134,9 @@ export function wrapText(ctx, text, maxW) {
   return lines;
 }
 
-// The label of a layer, right of the stack: a color square, the title and the sentence. Not drawn on a phone.
+// The label of a layer, right of the stack: a color square, the title and the sentence.
+// Callers draw it only when lay.labels is true (not on a phone, not in a narrow desktop panel).
 export function drawLabel(ctx, dpr, lay, l, alpha) {
-  if (lay.panel.mobile) return;
   const { R } = slabPoints(lay, l), x = R[0] + LABEL_GAP - 18, y = R[1] + lay.T / 2;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = alpha;
   ctx.fillStyle = LAYERS[l].col; ctx.fillRect(x, y - 16, 10, 10);

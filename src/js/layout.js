@@ -39,21 +39,26 @@ export function splitTiles(tiles, panel, W, H, rand = Math.random) {
   return { kept, leaving };
 }
 
+// The narrowest stack that is drawn next to the labels. A narrower panel shows the stack alone.
+export const MIN_STACK_W = 200;
+
 // On a desktop, the stack and its labels are one group, centered in the panel with a margin on both sides.
+// When that group leaves less than MIN_STACK_W for the stack (tablets, narrow windows), labels is false:
+// the stack alone fills the panel width without the margins and is centered. A phone has no labels either.
 // The panel is kept in the result because the extra tiles need it.
 export function stackLayout(panel, keptCount, H) {
   const n = Math.max(2, Math.floor(Math.sqrt(keptCount / 3)));
   const labelSpace = LABEL_GAP + LABEL_W;
-  const Hs = panel.mobile
-    ? Math.min(panel.w * .5 / (2 * COS), panel.h * .8 / 2.4)
-    : Math.min((panel.w - 2 * PANEL_MARGIN - labelSpace) / (2 * COS), panel.h * .8 / 2.4);
+  const labels = !panel.mobile && panel.w - 2 * PANEL_MARGIN - labelSpace >= MIN_STACK_W;
+  const room = panel.mobile ? panel.w * .5 : panel.w - 2 * PANEL_MARGIN - (labels ? labelSpace : 0);
+  const Hs = Math.min(room / (2 * COS), panel.h * .8 / 2.4);
   const c = Hs / n, L = Hs * .62, T = Hs * .07;
   const hw = Hs * COS;
-  const cx = panel.mobile ? panel.x + panel.w / 2 : panel.x + (panel.w - (2 * hw + labelSpace)) / 2 + hw;
+  const cx = labels ? panel.x + (panel.w - (2 * hw + labelSpace)) / 2 + hw : panel.x + panel.w / 2;
   const total = Hs + 2 * L + T;
   const cy = panel.mobile ? panel.y + panel.h / 2 : (H + NAV) / 2;
   const y0 = cy - total / 2;
-  return { n, c, Hs, T, cx, cy, tops: [y0 + 2 * L, y0 + L, y0], panel };
+  return { n, c, Hs, T, cx, cy, tops: [y0 + 2 * L, y0 + L, y0], panel, labels };
 }
 
 // The first 3 * n * n tiles (in random order) fill the three layers. The rest fly outward from the stack center.

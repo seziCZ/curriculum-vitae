@@ -58,7 +58,7 @@ export function createScene(canvas, { reducedMotion = false, dpr = 1, rand = Mat
       for (const tl of layers[l]) drawFlying(ctx, dpr, tl, build, growth(t, tl.at));
       if (slabQ > 0) drawTint(ctx, dpr, lay, l, slabQ);
     }
-    for (let l = 0; l < 3; l++) if (labels[l] > 0) drawLabel(ctx, dpr, lay, l, labels[l]);
+    if (lay.labels) for (let l = 0; l < 3; l++) if (labels[l] > 0) drawLabel(ctx, dpr, lay, l, labels[l]);
   }
 
   // Reduced motion: a still wall, then a short fade to the finished stack with all labels. Nothing flies.
@@ -82,7 +82,7 @@ export function createScene(canvas, { reducedMotion = false, dpr = 1, rand = Mat
         for (const tl of layers[l]) drawTile(ctx, dpr, tl, tl.target, f);
         drawTint(ctx, dpr, lay, l, f);
       }
-      for (let l = 0; l < 3; l++) drawLabel(ctx, dpr, lay, l, f);
+      if (lay.labels) for (let l = 0; l < 3; l++) drawLabel(ctx, dpr, lay, l, f);
     }
   }
 
