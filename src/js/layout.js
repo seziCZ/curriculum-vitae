@@ -13,9 +13,11 @@ const SIN = .5;
 
 // The panel is where the wall lives once the visitor starts reading:
 // the right half on a desktop, a band under the menu on a phone.
+// On a phone the panel is empty: every tile leaves while the hero scrolls away, and no stack forms,
+// because a stack in a band under the menu would cover the text without adding anything.
 export function panelFor(W, H) {
   return W < MOBILE_BREAK
-    ? { x: 0, y: NAV, w: W, h: H * .3, mobile: true }
+    ? { x: 0, y: NAV, w: W, h: 0, mobile: true }
     : { x: W * .5, y: 0, w: W * .5, h: H, mobile: false };
 }
 

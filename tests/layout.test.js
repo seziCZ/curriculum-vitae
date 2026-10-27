@@ -63,7 +63,7 @@ test('tiles right of the panel fly right', () => {
 });
 
 test('stack never needs more tiles than the panel keeps', () => {
-  for (const [W, H] of [[390, 800], [1024, 900], [1440, 900], [1866, 900]]) {
+  for (const [W, H] of [[1024, 900], [1440, 900], [1866, 900]]) {
     const { rand, panel, kept } = setup(W, H);
     const lay = stackLayout(panel, kept.length, H);
     const { layers, extras } = assignStack(kept, lay, rand);
@@ -74,6 +74,8 @@ test('stack never needs more tiles than the panel keeps', () => {
   }
 });
 
-test('phone panel is a band under the menu', () => {
-  assert.deepEqual(panelFor(390, 800), { x: 0, y: 56, w: 390, h: 240, mobile: true });
+test('phone panel is empty, so every tile leaves and no stack forms', () => {
+  assert.deepEqual(panelFor(390, 800), { x: 0, y: 56, w: 390, h: 0, mobile: true });
+  const { kept } = setup(390, 800);
+  assert.equal(kept.length, 0);
 });

@@ -42,6 +42,9 @@ export function createScene(canvas, { reducedMotion = false, dpr = 1, rand = Mat
     ({ layers, extras } = assignStack(split.kept, lay, rand));
   }
 
+  // A phone has an empty panel, so it never draws a stack (see panelFor).
+  const hasStack = () => panel.h > 0;
+
   function renderMoving(now, { a, build, labels }) {
     const t = (now - start) / 1000;
     const ea = ease(a);
@@ -51,6 +54,7 @@ export function createScene(canvas, { reducedMotion = false, dpr = 1, rand = Mat
     idleStep(tiles, now, idle, rand);
 
     for (const tl of leaving) drawLeaving(ctx, dpr, tl, a, growth(t, tl.at));
+    if (!hasStack()) return;
     const slabQ = slabAlpha(build);
     for (const tl of extras) drawFlying(ctx, dpr, tl, build, growth(t, tl.at));
     for (let l = 0; l < 3; l++) {
@@ -76,7 +80,7 @@ export function createScene(canvas, { reducedMotion = false, dpr = 1, rand = Mat
       ctx.fillRect(0, 0, W, H);
       for (const tl of tiles) drawTile(ctx, dpr, tl, [tl.size, 0, 0, tl.size, tl.hx, tl.hy], 1 - f);
     }
-    if (f > 0) {
+    if (f > 0 && hasStack()) {
       for (let l = 0; l < 3; l++) {
         drawSides(ctx, dpr, lay, l, f);
         for (const tl of layers[l]) drawTile(ctx, dpr, tl, tl.target, f);

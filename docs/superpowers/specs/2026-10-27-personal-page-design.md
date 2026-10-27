@@ -71,7 +71,7 @@ The first screen is a wall of square tiles, as in the prototype. The tiles have 
 - While About passes, the tiles in the right half build an isometric stack of three layers at once. Tiles that are not needed leave. No tile may stay behind outside the stack.
 - After the stack is complete, the layer labels appear one by one, spread over the rest of the page down to Posts: first Ingest, then Govern, then Act. Each label stays visible once it appears.
 - The stack and its labels are one group, centered in the right half, with a margin of at least 48 pixels on both sides. The labels have a fixed width of 220 pixels.
-- Phone: the wall shrinks to a band under the menu, about 30% of the screen height, and the stack builds in that band. The labels are not shown on a phone in the prototype. The builder may show the current label under the band, if it fits.
+- Phone: no stack forms. All tiles leave the screen while the hero scrolls away, and the full-width text column scrolls over the wall, so nothing covers the text while the visitor reads. With reduced motion, the still wall fades away when About arrives. (An earlier version built the stack in a band under the menu; on a phone it covered the text without adding anything.)
 
 ### 5.4 The three layers
 

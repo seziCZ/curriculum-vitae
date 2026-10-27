@@ -1,8 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createScene } from '../src/js/main.js';
-import { leaveProgress, tileProgress } from '../src/js/progress.js';
-import { panelFor } from '../src/js/layout.js';
+import { leaveProgress } from '../src/js/progress.js';
 import { canvasStub, seeded } from './helpers.js';
 
 const H = 900;
@@ -86,20 +85,24 @@ test('resize from desktop to phone mid-scroll leaves no stray tiles', () => {
   let calls = [];
   for (let sy = 1500; sy <= 4000; sy += 50) calls = frame(ctx, scene, now += 100, sy);
 
+  // On a phone every tile leaves, and no stack forms, so the last frame draws no tile at all.
   const { leaving, extras, layers } = scene.debug();
-  assert.ok(leaving.length > 0 && extras.length >= 0 && layers.flat().length > 0);
-  for (const tl of [...leaving, ...extras, ...layers.flat()]) assert.equal(tl.size, 72, 'tiles are rebuilt for the phone');
+  assert.ok(leaving.length > 0);
+  assert.equal(extras.length + layers.flat().length, 0, 'no stack on a phone');
+  for (const tl of leaving) assert.equal(tl.size, 72, 'tiles are rebuilt for the phone');
   for (const tl of leaving) assert.equal(leaveProgress(1, tl.outDelay), 1);
-  for (const tl of extras) assert.equal(tileProgress(1, tl.delay), 1);
-
-  // In the last frame, every drawn tile lies in the band under the menu.
-  const panel = panelFor(390, H);
-  const centers = tileCenters(calls, dpr);
-  assert.equal(centers.length, layers.flat().length);
-  for (const [x, y] of centers) {
-    assert.ok(x >= panel.x && x <= panel.x + panel.w && y >= panel.y && y <= panel.y + panel.h, `stray tile at ${x}, ${y}`);
-  }
+  assert.equal(tileCenters(calls, dpr).length, 0, 'tiles left on the screen');
   assert.equal(canvas.width, 390 * dpr);
+});
+
+test('a phone draws nothing once the visitor reads, also with reduced motion', () => {
+  for (const reducedMotion of [false, true]) {
+    const { ctx, scene } = setup(390, { reducedMotion });
+    frame(ctx, scene, 0, 3400);
+    const calls = frame(ctx, scene, 1000, 3400);
+    const paints = calls.filter(([name, , , w, h]) => ['fill', 'stroke'].includes(name) || (name === 'fillRect' && w > 0 && h > 0));
+    assert.equal(paints.length, 0, `something is drawn, reduced motion ${reducedMotion}`);
+  }
 });
 
 test('reduced motion draws no moving tiles', () => {
