@@ -53,7 +53,6 @@ canvas { display:block; width:100%; height:100%; }
 <script>
 const C = { navy:'#0b0d27', rust:'#c13a1f', blue:'#56789a', pink:'#e9c6bd' };
 const PAL = [C.navy, C.rust, C.blue, C.pink];
-const TYPES = ['quarter','half','circle','rings','stripes','star','bullseye','arch'];
 const LAYER = [
   { name:'Bronze', sub:'raw data', col:C.rust, dark:'#7d2414' },
   { name:'Silver', sub:'cleaned and joined', col:C.blue, dark:'#34506b' },
@@ -71,9 +70,13 @@ const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const lerp = (a, b, t) => a + (b - a) * t;
 
-let W, H, dpr, tiles = [], extras = [], layers = [[], [], []], lay, particles = [];
+const DATA_TYPES = ['bars', 'spark', 'grid', 'binary', 'db', 'graph'];
+const GRAPH_NODES = [[-.3, -.25], [.25, -.3], [0, .05], [-.25, .3], [.3, .25]];
+const GRAPH_EDGES = [[0, 2], [1, 2], [2, 3], [2, 4], [0, 1]];
+
+let W, H, dpr, tiles = [], solos = [], dataTiles = [], extras = [], layers = [[], [], []], lay;
 const start = performance.now();
-let lastFlip = 0;
+let lastFlip = 0, lastData = 0;
 
 function build() {
   dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -83,14 +86,52 @@ function build() {
   const cols = Math.ceil(W / size) + 1, rows = Math.ceil(H / size) + 1;
   const ox = (W - cols * size) / 2, oy = (H - rows * size) / 2;
 
+  // Fill the grid with motifs: 2x2 big circles, 2x1 pills and stripe blocks, and single tiles.
+  // Tiles of one motif share colors and appear together, so the bigger shapes read as one piece.
   tiles = [];
-  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-    const bg = pick([C.navy, C.navy, C.rust, C.blue, C.pink]);
+  const used = Array.from({ length: rows }, () => Array(cols).fill(false));
+  const free = (r, c, h, w) => {
+    for (let i = 0; i < h; i++) for (let j = 0; j < w; j++)
+      if (r + i >= rows || c + j >= cols || used[r + i][c + j]) return false;
+    return true;
+  };
+  const colors = () => {
+    const bg = pick([C.navy, C.navy, C.navy, C.pink, C.blue, C.rust]);
     let fg; do fg = pick(PAL); while (fg === bg);
-    const rot = Math.floor(rnd(0, 4)) * Math.PI / 2;
-    tiles.push({ hx: ox + c * size + size / 2, hy: oy + r * size + size / 2, size, bg, fg,
-      type: pick(TYPES), rot, rotTarget: rot, nx: rnd(-1, 1), at: rnd(0, 1.8) });
+    return { bg, fg };
+  };
+  const add = (r, c, type, k, col, at, solo) => {
+    used[r][c] = true;
+    const data = Array.from({ length: 16 }, Math.random);
+    tiles.push({ hx: ox + c * size + size / 2, hy: oy + r * size + size / 2, size, bg: col.bg, fg: col.fg,
+      type, rot: k * Math.PI / 2, rotTarget: k * Math.PI / 2, nx: rnd(-1, 1), at, solo,
+      data, dataTarget: data.slice() });
+  };
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    if (used[r][c]) continue;
+    const col = colors(), at = rnd(0, 1.8), roll = Math.random();
+    if (roll < .1 && free(r, c, 2, 2)) {
+      const big = pick(['quarter', 'rings', 'mixed']);
+      [[0, 0, 2], [0, 1, 3], [1, 0, 1], [1, 1, 0]].forEach(([i, j, k], n) => {
+        const type = big === 'mixed' ? (n % 3 === 0 ? 'quarter' : 'rings') : big;
+        add(r + i, c + j, type, k, col, at, false);
+      });
+    } else if (roll < .22 && free(r, c, 2, 1)) {
+      const type = pick(['half', 'arch', 'stripes']);
+      add(r, c, type, type === 'stripes' ? 1 : 0, col, at, false);
+      add(r + 1, c, type, type === 'stripes' ? 1 : 2, col, at, false);
+    } else if (roll < .32 && free(r, c, 1, 2)) {
+      const type = pick(['half', 'arch', 'stripes']);
+      add(r, c, type, type === 'stripes' ? 0 : 3, col, at, false);
+      add(r, c + 1, type, type === 'stripes' ? 0 : 1, col, at, false);
+    } else if (roll < .6) {
+      add(r, c, pick(DATA_TYPES), 0, col, at, false);
+    } else {
+      add(r, c, pick(['circle', 'star', 'bullseye', 'quarter', 'half', 'stripes', 'stripes']), Math.floor(rnd(0, 4)), col, at, true);
+    }
   }
+  solos = tiles.filter(tl => tl.solo);
+  dataTiles = tiles.filter(tl => tl.type === 'bars' || tl.type === 'spark');
 
   const n = Math.max(2, Math.floor(Math.sqrt(tiles.length / 3)));
   const mobile = W < 760;
@@ -121,13 +162,50 @@ function build() {
       extras.push(tl);
     }
   });
-
-  particles = Array.from({ length: 70 }, () => ({ u: rnd(.5, n - .5), v: rnd(.5, n - .5), sp: rnd(.15, .35), ph: rnd(0, 1) }));
 }
 
-function shape(type, fg, bg) {
+function shape(type, fg, bg, d) {
   ctx.fillStyle = fg; ctx.strokeStyle = fg; ctx.lineWidth = .022;
   switch (type) {
+    case 'bars':
+      for (let i = 0; i < 4; i++) { const h = .15 + d[i] * .6; ctx.fillRect(-.36 + i * .2, .38 - h, .14, h); }
+      ctx.fillRect(-.42, .38, .84, .03);
+      break;
+    case 'spark':
+      ctx.lineWidth = .035; ctx.lineJoin = 'round'; ctx.beginPath();
+      for (let i = 0; i < 6; i++) { const x = -.38 + i * .152, y = .3 - d[i] * .6; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+      ctx.stroke();
+      for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(-.38 + i * .152, .3 - d[i] * .6, .045, 0, 7); ctx.fill(); }
+      break;
+    case 'grid':
+      for (let i = 0; i < 16; i++) {
+        const x = -.4 + (i % 4) * .21, y = -.4 + Math.floor(i / 4) * .21;
+        if (d[i] > .45) ctx.fillRect(x, y, .17, .17); else ctx.strokeRect(x + .01, y + .01, .15, .15);
+      }
+      break;
+    case 'binary':
+      ctx.lineWidth = .035;
+      for (let i = 0; i < 12; i++) {
+        const x = -.33 + (i % 4) * .22, y = -.27 + Math.floor(i / 4) * .27;
+        if (d[i] > .5) ctx.fillRect(x - .03, y - .1, .06, .2);
+        else { ctx.beginPath(); ctx.ellipse(x, y, .055, .085, 0, 0, 7); ctx.stroke(); }
+      }
+      break;
+    case 'db':
+      ctx.fillRect(-.3, -.25, .6, .55);
+      ctx.beginPath(); ctx.ellipse(0, .3, .3, .09, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, -.25, .3, .09, 0, 0, 7); ctx.fill();
+      ctx.strokeStyle = bg; ctx.lineWidth = .03;
+      ctx.beginPath(); ctx.ellipse(0, -.25, .3, .09, 0, 0, 7); ctx.stroke();
+      for (const y of [-.07, .12]) { ctx.beginPath(); ctx.ellipse(0, y, .3, .09, 0, 0, Math.PI); ctx.stroke(); }
+      break;
+    case 'graph':
+      ctx.lineWidth = .03;
+      for (const [a, b] of GRAPH_EDGES) {
+        ctx.beginPath(); ctx.moveTo(...GRAPH_NODES[a]); ctx.lineTo(...GRAPH_NODES[b]); ctx.stroke();
+      }
+      GRAPH_NODES.forEach(([x, y], i) => { ctx.beginPath(); ctx.arc(x, y, i === 2 ? .11 : .07, 0, 7); ctx.fill(); });
+      break;
     case 'quarter':
       ctx.beginPath(); ctx.moveTo(-.5, -.5); ctx.arc(-.5, -.5, 1, 0, Math.PI / 2); ctx.closePath(); ctx.fill(); break;
     case 'half':
@@ -135,7 +213,7 @@ function shape(type, fg, bg) {
     case 'circle':
       ctx.beginPath(); ctx.arc(0, 0, .4, 0, 7); ctx.fill(); break;
     case 'rings':
-      for (let r = .12; r < 1.45; r += .09) { ctx.beginPath(); ctx.arc(-.5, .5, r, -Math.PI / 2, 0); ctx.stroke(); } break;
+      for (let r = .1; r < 1.01; r += .1) { ctx.beginPath(); ctx.arc(-.5, -.5, r, 0, Math.PI / 2); ctx.stroke(); } break;
     case 'stripes':
       for (let y = -.5 + .045; y < .5; y += .075) { ctx.beginPath(); ctx.moveTo(-.5, y); ctx.lineTo(.5, y); ctx.stroke(); } break;
     case 'star':
@@ -158,7 +236,7 @@ function drawTile(tl, m, alpha) {
   ctx.beginPath(); ctx.rect(-.5, -.5, 1, 1); ctx.clip();
   ctx.fillStyle = tl.bg; ctx.fillRect(-.5, -.5, 1, 1);
   ctx.rotate(tl.rot);
-  shape(tl.type, tl.fg, tl.bg);
+  shape(tl.type, tl.fg, tl.bg, tl.data);
   ctx.restore();
 }
 
@@ -208,19 +286,6 @@ function drawLabels(a) {
   }
 }
 
-function drawFlow(t, a) {
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  for (const pt of particles) {
-    const s = (t * pt.sp + pt.ph) % 1;
-    const x = lay.cx + (pt.u - pt.v) * lay.c * COS;
-    const off = (pt.u + pt.v) * lay.c * SIN;
-    const y = lerp(lay.tops[0] + off, lay.tops[2] + off, s);
-    ctx.globalAlpha = a * Math.sin(s * Math.PI);
-    ctx.fillStyle = C.pink;
-    ctx.beginPath(); ctx.arc(x, y, Math.max(2.5, lay.c * .1), 0, 7); ctx.fill();
-  }
-}
-
 function frame(now) {
   const t = (now - start) / 1000;
   const intro = clamp((t - 2) / .6);
@@ -230,8 +295,12 @@ function frame(now) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1;
   ctx.fillStyle = C.navy; ctx.fillRect(0, 0, W, H);
 
-  if (now - lastFlip > 700) { lastFlip = now; pick(tiles).rotTarget += Math.PI / 2; }
-  for (const tl of tiles) tl.rot += (tl.rotTarget - tl.rot) * .08;
+  if (now - lastFlip > 700 && solos.length) { lastFlip = now; pick(solos).rotTarget += Math.PI / 2; }
+  if (now - lastData > 400 && dataTiles.length) { lastData = now; pick(dataTiles).dataTarget = Array.from({ length: 16 }, Math.random); }
+  for (const tl of tiles) {
+    tl.rot += (tl.rotTarget - tl.rot) * .08;
+    for (let i = 0; i < 6; i++) tl.data[i] += (tl.dataTarget[i] - tl.data[i]) * .05;
+  }
 
   const slabQ = ease(clamp((p - .55) / .25));
   for (const tl of extras) drawFlying(tl, p, t);
@@ -240,7 +309,6 @@ function frame(now) {
     for (const tl of layers[l]) drawFlying(tl, p, t);
     if (slabQ > 0) drawTint(l, slabQ);
   }
-  if (p > .75) drawFlow(t, clamp((p - .75) / .15));
   if (slabQ > 0) drawLabels(slabQ);
 
   hero.style.opacity = 1 - clamp(p / .12);
