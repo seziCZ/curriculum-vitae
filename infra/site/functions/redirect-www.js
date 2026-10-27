@@ -21,11 +21,13 @@ function handler(event) {
   }
 
   // A parameter that repeats has all its values in multiValue. The plain value is only the first one.
+  // An index loop, because the CloudFront runtime does not support for...of.
   const params = request.querystring || {};
   let query = '';
   for (const key in params) {
-    for (const item of params[key].multiValue || [params[key]]) {
-      query += (query ? '&' : '?') + encodeQueryPart(key) + '=' + encodeQueryPart(item.value);
+    const items = params[key].multiValue || [params[key]];
+    for (let i = 0; i < items.length; i++) {
+      query += (query ? '&' : '?') + encodeQueryPart(key) + '=' + encodeQueryPart(items[i].value);
     }
   }
 

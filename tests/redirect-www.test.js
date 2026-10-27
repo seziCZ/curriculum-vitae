@@ -9,6 +9,16 @@ const src = readFileSync(
 ).replaceAll('__DOMAIN__', 'example.org');
 const handler = new Function(src + '\nreturn handler;')();
 
+// These tests run the function in Node, but CloudFront runs it in its own JavaScript runtime 2.0,
+// which rejects some modern syntax and then fails every request with a 503.
+// CloudFront reported "SyntaxError: Token "of" not supported in this version" for a for...of loop.
+test('the function uses only syntax that CloudFront Functions support', () => {
+  const code = src.replace(/\/\/.*$/gm, '');
+  assert.doesNotMatch(code, /\bfor\s*\([^)]*\bof\b/, 'for...of loop');
+  assert.doesNotMatch(code, /\?\./, 'optional chaining ?.');
+  assert.doesNotMatch(code, /\?\?/, 'nullish coalescing ??');
+});
+
 function event(host, uri, querystring = {}) {
   return {
     request: {
