@@ -35,6 +35,8 @@ Anti-goals (the page fails if any of these is true, even if it works technically
 
 This phase builds the front end only: the page, its content and the data files for events and posts, runnable and viewable locally. The domain, DNS, the Git hosting, the S3 and CloudFront setup and the deployment come in a later phase. The front end must still produce plain static files, so the later deployment to S3 needs no changes to it.
 
+Target for the later phase (decided by Tomáš): a static website on Amazon S3, with all infrastructure defined and deployed with Terraform. The running costs must fit the AWS Free Tier. The only expected cost is the DNS domain.
+
 Content that is still missing (section 10) must not block this phase. Each missing part is hidden until Tomáš adds it: an empty result line is not shown, a work item without a client name describes the domain instead, and the Posts section and its menu link are hidden when there are no posts. When Posts is hidden, the layer labels finish at the end of Community instead.
 
 ## 4. Constraints
