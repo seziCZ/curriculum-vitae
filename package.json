@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "deploy": "node scripts/deploy.mjs",
     "dev": "node scripts/build.mjs && node scripts/serve.mjs",
     "test": "node --test"
   },
