@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Icon</title>
+<!-- Shows favicon.svg at ?size=N pixels in the top-left corner, so scripts/make-images.mjs can render
+     the PNG icons. A fixed size is needed because headless browsers have a minimum window width. -->
+<style>
+  html, body { margin:0; }
+  img { display:block; }
+</style>
+</head>
+<body>
+<img id="icon" src="/src/static/favicon.svg" alt="">
+<script>
+  const size = Number(new URLSearchParams(location.search).get('size')) || 96;
+  const icon = document.getElementById('icon');
+  icon.width = size;
+  icon.height = size;
+</script>
+</body>
+</html>

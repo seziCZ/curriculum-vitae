@@ -128,8 +128,11 @@ export function renderPosts(posts) {
   }).join('\n');
 }
 
-export function renderPage(template, { events = [], posts = [], today } = {}) {
-  let html = template.replace('<!--@community-->', () => renderCommunity(events, today));
+// `head` is extra markup for <head> (search and link-preview tags), rendered by the caller.
+export function renderPage(template, { events = [], posts = [], today, head = '' } = {}) {
+  let html = template
+    .replace('<!--@head-->', () => head)
+    .replace('<!--@community-->', () => renderCommunity(events, today));
   if (posts.length === 0) {
     html = html.replace(/<!--@posts-section-->[\s\S]*?<!--\/@posts-section-->\n?/, '')
       .replace(/<!--@posts-nav-->[\s\S]*?<!--\/@posts-nav-->/, '');
