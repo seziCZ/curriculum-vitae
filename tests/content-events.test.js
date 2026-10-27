@@ -36,3 +36,9 @@ test('renderCommunity puts the next-event slot after the intro and before the li
   const intro = html.indexOf('<p>'), slot = html.indexOf('<div class="next-event" hidden></div>'), list = html.indexOf('<ol class="events">');
   assert.ok(intro === 0 && intro < slot && slot < list, `order ${intro}, ${slot}, ${list}`);
 });
+test('validateEvent rejects dates that do not exist', () => {
+  for (const date of ['2026-13-01', '2026-02-30', '2026-00-10', '2026-04-31']) {
+    assert.ok(validateEvent({ ...valid, date }).some(e => e.includes('date')), date);
+  }
+  assert.deepEqual(validateEvent({ ...valid, date: '2028-02-29' }), []);
+});

@@ -7,10 +7,21 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const isText = v => typeof v === 'string' && v.trim() !== '';
 
+// Checks the YYYY-MM-DD form and that the day exists in that month (2026-02-30 does not).
+// Returns an error message, or null when the date is valid.
+function dateError(date) {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return 'date must be YYYY-MM-DD';
+  const [y, m, d] = date.split('-').map(Number);
+  const utc = new Date(Date.UTC(y, m - 1, d));
+  const real = m >= 1 && m <= 12 && utc.getUTCFullYear() === y && utc.getUTCMonth() === m - 1 && utc.getUTCDate() === d;
+  return real ? null : 'date must be a real calendar date';
+}
+
 export function validateEvent(e) {
   const errors = [];
   if (!e || typeof e !== 'object') return ['event must be an object'];
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(e.date ?? '')) errors.push('date must be YYYY-MM-DD');
+  const dateErr = dateError(e.date);
+  if (dateErr) errors.push(dateErr);
   if (!['AWS', 'Databricks'].includes(e.group)) errors.push('group must be AWS or Databricks');
   if (!Number.isInteger(e.number) || e.number < 1) errors.push('number must be a positive integer');
   if (!isText(e.title)) errors.push('title is required');
@@ -84,7 +95,8 @@ ${sorted.map(renderEvent).join('\n')}
 export function validatePost(p) {
   const errors = [];
   if (!p || typeof p !== 'object') return ['post must be an object'];
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date ?? '')) errors.push('date must be YYYY-MM-DD');
+  const dateErr = dateError(p.date);
+  if (dateErr) errors.push(dateErr);
   if (!isText(p.text)) errors.push('text is required');
   if (!isText(p.url) || !/^https:\/\/([a-z0-9-]+\.)*linkedin\.com(\/|$)/i.test(p.url)) errors.push('url must be a linkedin.com link');
   if (p.image !== undefined && !isText(p.image)) errors.push('image must be text when present');

@@ -39,3 +39,9 @@ test('renderPage keeps posts when there are some', () => {
   assert.ok(html.includes('Post 2026-04-01'));
   assert.ok(!html.includes('<!--@') && !html.includes('<!--/@'));
 });
+test('validatePost rejects dates that do not exist', () => {
+  for (const date of ['2026-13-01', '2026-02-30', '2026-00-10', '2026-04-31']) {
+    assert.ok(validatePost(mk(date)).some(e => e.includes('date')), date);
+  }
+  assert.deepEqual(validatePost(mk('2028-02-29')), []);
+});
