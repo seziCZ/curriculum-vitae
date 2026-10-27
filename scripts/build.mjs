@@ -1,5 +1,5 @@
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadEvents, loadPosts, renderPage } from '../src/build/content.js';
 
@@ -12,7 +12,9 @@ export function localIsoDate(d = new Date()) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+// A relative outDir resolves against the repository root, not the current folder.
 export async function build(outDir = 'dist', today = localIsoDate()) {
+  outDir = resolve(root, outDir);
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(join(outDir, 'fonts'), { recursive: true });
   cpSync(join(root, 'src/css'), join(outDir, 'css'), { recursive: true });
