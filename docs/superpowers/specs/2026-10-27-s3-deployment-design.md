@@ -44,16 +44,17 @@ A small Terraform configuration with local state. It creates one S3 bucket for t
 - all public access blocked
 - `prevent_destroy`, so it is not deleted by accident
 
-Its local state file is committed to the repository. It contains no secrets, only the bucket. The bucket name is an input (it must be globally unique), with a sensible default derived from the account ID.
+Its local state file is committed to the repository. It contains no secrets, only the bucket. The bucket has the fixed name `sezima-curriculum-vitae-tfstate`, and the backend of `infra/site` uses the same name. The name must be globally unique, so if it is taken, it is changed in both places.
 
 ### 4.2 Main configuration: `infra/site`
 
 The state is stored in the bootstrap bucket (S3 backend, `use_lockfile = true`, `encrypt = true`).
 
-Inputs:
+Inputs, set in `infra/site/terraform.tfvars`, which is committed:
 - `domain` (for example `sezima.example`), the apex domain of the page
 - `hosted_zone_id` (or a lookup of the zone by `domain`)
-- `aws_profile` and `region` (default `eu-west-1`)
+
+There is no `region` input. The region is fixed to `eu-west-1`.
 
 Resources:
 1. **Site bucket** in `eu-west-1`: private, all public access blocked, default encryption, no versioning (the content is rebuilt from Git at any time). Its bucket policy allows reading only by the CloudFront distribution, through Origin Access Control (OAC).
@@ -89,7 +90,7 @@ The AWS profile comes from the `AWS_PROFILE` environment variable, which the AWS
 
 0. Check that the domain is delegated to the hosted zone: the name servers that `nslookup -type=NS <domain>` (or `dig NS <domain>`) returns must be the four name servers of the zone. With a domain registered in Route 53 this is automatic. Without delegation, the certificate validation in step 2 waits until it times out.
 1. `infra/bootstrap`: `terraform init` and `terraform apply` once.
-2. `infra/site`: `terraform init` (with the bucket name from step 1) and `terraform apply`. Certificate validation can take a few minutes.
+2. `infra/site`: set the domain in `infra/site/terraform.tfvars` and commit it, then `terraform init` and `terraform apply`. Certificate validation can take a few minutes.
 3. `npm run deploy`.
 4. Outside this design: verify the domain in Google Search Console and Bing Webmaster Tools, run Google's Rich Results Test and LinkedIn's Post Inspector.
 
