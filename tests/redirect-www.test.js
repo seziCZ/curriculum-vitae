@@ -38,3 +38,34 @@ test('apex host passes the request through', () => {
   const result = handler({ request });
   assert.equal(result, request);
 });
+
+test('query value with an existing percent escape is not encoded twice', () => {
+  const result = handler(event('www.example.org', '/', { q: { value: 'a%20b' } }));
+  assert.equal(result.headers.location.value, 'https://example.org/?q=a%20b');
+});
+
+test('space in a query value is encoded as %20', () => {
+  const result = handler(event('www.example.org', '/', { q: { value: 'a b' } }));
+  assert.equal(result.headers.location.value, 'https://example.org/?q=a%20b');
+});
+
+test('plus sign in a query value is kept as a plus sign', () => {
+  const result = handler(event('www.example.org', '/', { q: { value: 'a+b' } }));
+  assert.equal(result.headers.location.value, 'https://example.org/?q=a+b');
+});
+
+test('ampersand in a query value is encoded as %26', () => {
+  const result = handler(event('www.example.org', '/', { q: { value: 'x&y' } }));
+  assert.equal(result.headers.location.value, 'https://example.org/?q=x%26y');
+});
+
+test('single plain query parameter without multiValue', () => {
+  const result = handler(event('www.example.org', '/', { a: { value: '1' } }));
+  assert.equal(result.headers.location.value, 'https://example.org/?a=1');
+});
+
+test('request without a host header passes through unchanged', () => {
+  const request = { uri: '/', headers: {}, querystring: {} };
+  const result = handler({ request });
+  assert.equal(result, request);
+});
