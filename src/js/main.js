@@ -120,14 +120,25 @@ function wirePage() {
 
   showNextEvent(document, localIsoDate(new Date()));
 
-  const makeScene = () => createScene(canvas, { reducedMotion: motion.matches, dpr: pixelRatio() });
+  // The canvas size and pixel ratio of the last build. A phone fires resize when its toolbar shows or hides,
+  // but the canvas (100vh) keeps its size. Then the wall is kept as it is and not drawn again at random.
+  const sizeNow = () => `${canvas.clientWidth}x${canvas.clientHeight}@${window.devicePixelRatio}`;
+  let builtSize;
+  const makeScene = () => {
+    builtSize = sizeNow();
+    return createScene(canvas, { reducedMotion: motion.matches, dpr: pixelRatio() });
+  };
   let scene = makeScene();
   motion.addEventListener('change', () => { scene = makeScene(); });
 
   let resizeTimer;
   addEventListener('resize', () => {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => scene.rebuild({ dpr: pixelRatio() }), 150);
+    resizeTimer = setTimeout(() => {
+      if (sizeNow() === builtSize) return;
+      builtSize = sizeNow();
+      scene.rebuild({ dpr: pixelRatio() });
+    }, 150);
   });
 
   let first = null;
