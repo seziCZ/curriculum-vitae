@@ -16,3 +16,11 @@ test('build writes the page with the hero copy and self-hosted fonts', async () 
   assert.ok(readdirSync(join(out, 'fonts')).some(f => f.startsWith('inter') && f.endsWith('.woff2')));
   assert.doesNotMatch(html, /[\u2013\u2014]/);
 });
+
+test('build puts one next-event slot after the Community intro', async () => {
+  const out = mkdtempSync(join(tmpdir(), 'page-'));
+  await build(out, '2026-10-27');
+  const html = readFileSync(join(out, 'index.html'), 'utf8');
+  assert.equal(html.match(/class="next-event"/g).length, 1);
+  assert.ok(html.indexOf('class="next-event"') > html.indexOf('I help organize both groups'));
+});

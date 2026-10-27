@@ -75,6 +75,7 @@ export function renderEvent(e) {
 export function renderCommunity(events, today) {
   const sorted = [...events].sort((a, b) => b.date.localeCompare(a.date));
   return `<p>${esc(communityIntro(events, today))}</p>
+<div class="next-event" hidden></div>
 <ol class="events">
 ${sorted.map(renderEvent).join('\n')}
 </ol>`;

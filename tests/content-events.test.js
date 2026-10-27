@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadEvents, validateEvent, formatDate, communityIntro, renderEvent } from '../src/build/content.js';
+import { loadEvents, validateEvent, formatDate, communityIntro, renderEvent, renderCommunity } from '../src/build/content.js';
 
 const events = loadEvents('content/events');
 const databricks1 = events.find(e => e.group === 'Databricks');
@@ -30,4 +30,9 @@ test('renderEvent escapes text and skips missing optional fields', () => {
   const html = renderEvent({ ...databricks1, title: 'A & B <test>' });
   assert.match(html, /A &amp; B &lt;test&gt;/);
   assert.doesNotMatch(html, /undefined|null/);
+});
+test('renderCommunity puts the next-event slot after the intro and before the list', () => {
+  const html = renderCommunity(events, '2026-10-27');
+  const intro = html.indexOf('<p>'), slot = html.indexOf('<div class="next-event" hidden></div>'), list = html.indexOf('<ol class="events">');
+  assert.ok(intro === 0 && intro < slot && slot < list, `order ${intro}, ${slot}, ${list}`);
 });
