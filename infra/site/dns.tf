@@ -31,19 +31,21 @@ resource "aws_route53_record" "alias_aaaa" {
   }
 }
 
-# The domain sends no email, so these records tell other mail servers to reject mail that claims
-# to come from it. The CAA record lets only Amazon issue certificates for the domain.
-resource "aws_route53_record" "policy" {
+# The domain never sends mail, so SPF and DMARC tell other mail servers to reject mail that claims
+# to come from it. It receives mail only for the aliases in var.mail_forwarding: Forward Email
+# (free plan, set up with these DNS records only) forwards them. Without aliases, a null MX says
+# that the domain receives no mail. The CAA record lets only Amazon issue certificates for the domain.
+resource "aws_route53_record" "mail_and_caa" {
   for_each = {
-    spf   = { name = var.domain, type = "TXT", value = "v=spf1 -all" }
-    dmarc = { name = "_dmarc.${var.domain}", type = "TXT", value = "v=DMARC1; p=reject" }
-    mx    = { name = var.domain, type = "MX", value = "0 ." }
-    caa   = { name = var.domain, type = "CAA", value = "0 issue \"amazon.com\"" }
+    txt   = { name = var.domain, type = "TXT", records = concat(["v=spf1 -all"], [for alias, to in var.mail_forwarding : "forward-email=${alias}:${to}"]) }
+    dmarc = { name = "_dmarc.${var.domain}", type = "TXT", records = ["v=DMARC1; p=reject"] }
+    mx    = { name = var.domain, type = "MX", records = length(var.mail_forwarding) > 0 ? ["0 mx1.forwardemail.net", "0 mx2.forwardemail.net"] : ["0 ."] }
+    caa   = { name = var.domain, type = "CAA", records = ["0 issue \"amazon.com\""] }
   }
 
   zone_id = local.zone_id
   name    = each.value.name
   type    = each.value.type
   ttl     = 3600
-  records = [each.value.value]
+  records = each.value.records
 }

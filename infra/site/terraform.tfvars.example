@@ -1,5 +1,8 @@
 domain      = "example.org"
 alert_email = "you@example.org"
 
+# Optional: addresses at the domain that forward to another mailbox. Without it, the domain receives no mail.
+# mail_forwarding = { me = "you@example.org" }
+
 # Only when the hosted zone is for a parent domain, or when two zones have the same name.
 # hosted_zone_id = "Z..."

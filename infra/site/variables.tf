@@ -18,6 +18,12 @@ variable "alert_email" {
   }
 }
 
+variable "mail_forwarding" {
+  description = "Addresses at the domain that forward to another mailbox, as alias = target, for example { tomas = \"me@gmail.com\" }. Empty means that the domain receives no mail."
+  type        = map(string)
+  default     = {}
+}
+
 variable "hosted_zone_id" {
   description = "ID of the Route 53 hosted zone. When it is null, the zone is looked up by the domain name."
   type        = string

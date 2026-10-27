@@ -38,6 +38,14 @@ test('the built pages work under the Content-Security-Policy', async () => {
   }
 });
 
+test('the contact email is the address at the domain', async () => {
+  const out = mkdtempSync(join(tmpdir(), 'page-'));
+  await build(out, '2026-10-27');
+  const html = readFileSync(join(out, 'index.html'), 'utf8');
+  assert.match(html, /href="mailto:tomas@sezima\.dev"/);
+  assert.doesNotMatch(html, /gmail\.com/);
+});
+
 test('the current work item ends in the build year', async () => {
   const out = mkdtempSync(join(tmpdir(), 'page-'));
   await build(out, '2027-03-15');
