@@ -24,6 +24,12 @@ variable "mail_forwarding" {
   default     = {}
 }
 
+variable "verification_txt" {
+  description = "Extra TXT values on the domain that prove ownership to a service, for example Google Search Console. Terraform manages the TXT record of the domain, so such values belong here and not in the Route 53 console."
+  type        = list(string)
+  default     = []
+}
+
 variable "hosted_zone_id" {
   description = "ID of the Route 53 hosted zone. When it is null, the zone is looked up by the domain name."
   type        = string

@@ -37,7 +37,7 @@ resource "aws_route53_record" "alias_aaaa" {
 # that the domain receives no mail. The CAA record lets only Amazon issue certificates for the domain.
 resource "aws_route53_record" "mail_and_caa" {
   for_each = {
-    txt   = { name = var.domain, type = "TXT", records = concat(["v=spf1 -all"], [for alias, to in var.mail_forwarding : "forward-email=${alias}:${to}"]) }
+    txt   = { name = var.domain, type = "TXT", records = concat(["v=spf1 -all"], [for alias, to in var.mail_forwarding : "forward-email=${alias}:${to}"], var.verification_txt) }
     dmarc = { name = "_dmarc.${var.domain}", type = "TXT", records = ["v=DMARC1; p=reject"] }
     mx    = { name = var.domain, type = "MX", records = length(var.mail_forwarding) > 0 ? ["0 mx1.forwardemail.net", "0 mx2.forwardemail.net"] : ["0 ."] }
     caa   = { name = var.domain, type = "CAA", records = ["0 issue \"amazon.com\""] }
