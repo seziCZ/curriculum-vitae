@@ -10,7 +10,7 @@ test('build writes the page with the hero copy and self-hosted fonts', async () 
   await build(out, '2026-10-27');
   const html = readFileSync(join(out, 'index.html'), 'utf8');
   assert.match(html, /I build the data platforms that products and AI agents run on\./);
-  assert.match(html, /15 years of engineering, 10 of them in data, on AWS and Databricks\./);
+  assert.match(html, /15 years of engineering, 10 of them in data, on AWS and Databricks\. Agentic AI is my current focus, and the part of my work I enjoy most\./);
   assert.doesNotMatch(html, /fonts\.googleapis\.com|fonts\.gstatic\.com/);
   assert.ok(readdirSync(join(out, 'fonts')).some(f => f.startsWith('space-grotesk') && f.endsWith('.woff2')));
   assert.ok(readdirSync(join(out, 'fonts')).some(f => f.startsWith('inter') && f.endsWith('.woff2')));
