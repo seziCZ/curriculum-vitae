@@ -15,12 +15,16 @@ test('validateEvent reports missing fields', () => {
   assert.ok(validateEvent({ ...valid, date: '20.10.2026' }).some(e => e.includes('date')));
 });
 test('formatDate', () => assert.equal(formatDate('2026-10-20'), '20 Oct 2026'));
-test('communityIntro names the start and the outside companies, without a count', () => {
+test('communityIntro names the start and example companies, without a count', () => {
   assert.equal(communityIntro(events, '2026-10-27'),
-    'I help organize both groups and speak at them. Since February 2026, our speakers have come from AWS, SentinelOne, Sage, Kyndryl and E.ON.');
+    'I help organize both groups and speak at them. Since February 2026, our speakers have come from companies such as AWS, SentinelOne, Sage, Kyndryl and E.ON.');
   assert.equal(communityIntro(events, '2026-10-10'),
-    'I help organize both groups and speak at them. Since February 2026, our speakers have come from AWS, SentinelOne, Sage and Kyndryl.');
+    'I help organize both groups and speak at them. Since February 2026, our speakers have come from companies such as AWS, SentinelOne, Sage and Kyndryl.');
   assert.doesNotMatch(communityIntro(events, '2026-10-27'), /\d+ meetups?/);
+});
+test('communityIntro names at most 5 example companies', () => {
+  const more = [...events, { ...valid, date: '2026-10-25', talks: ['Alpha', 'Beta'].map(company => ({ title: 'T', speaker: 'S', company })) }];
+  assert.match(communityIntro(more, '2026-10-27'), /such as AWS, SentinelOne, Sage, Kyndryl and E\.ON\.$/);
 });
 test('communityIntro without outside speakers is only the first sentence', () => {
   assert.equal(communityIntro([], '2026-10-27'), 'I help organize both groups and speak at them.');

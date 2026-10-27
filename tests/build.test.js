@@ -46,12 +46,20 @@ test('the contact email is the address at the domain', async () => {
   assert.doesNotMatch(html, /gmail\.com/);
 });
 
-test('the current work item ends in the build year', async () => {
+test('ongoing work items end in "today", so they stay true in later years', async () => {
   const out = mkdtempSync(join(tmpdir(), 'page-'));
   await build(out, '2027-03-15');
   const html = readFileSync(join(out, 'index.html'), 'utf8');
-  assert.match(html, /2022 to 2027 · Datamole/);
+  assert.match(html, /2024 to today · Datamole/);
+  assert.match(html, /2018 to today · Datamole/);
   assert.doesNotMatch(html, /<!--@/);
+});
+
+test('About names the actor model and AWS, and no team size', async () => {
+  const out = mkdtempSync(join(tmpdir(), 'page-'));
+  await build(out, '2026-10-27');
+  const html = readFileSync(join(out, 'index.html'), 'utf8');
+  assert.match(html, /I have built data systems since 2016: Spark, Kafka and Cassandra at Honeywell, and an event-driven IoT platform on the actor model at Atos\. At Datamole, I build data platforms on AWS and Databricks\. I hired and grew two data engineering teams\./);
 });
 
 test('build puts one next-event slot after the Community intro', async () => {

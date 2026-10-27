@@ -110,7 +110,7 @@ These come from the research and are not optional:
 
 > I build data platforms: the systems that collect data, make it reliable and deliver it to products and AI agents. I work on the engineering side of data. I do not build dashboards or train models.
 >
-> I have built data systems since 2016: Spark, Kafka and Cassandra at Honeywell, an event-driven IoT platform at Atos, and cloud and Databricks platforms at Datamole. I hired and grew two data engineering teams of 5 people each.
+> I have built data systems since 2016: Spark, Kafka and Cassandra at Honeywell, and an event-driven IoT platform on the actor model at Atos. At Datamole, I build data platforms on AWS and Databricks. I hired and grew two data engineering teams.
 >
 > Today I lead Data Engineering at Datamole in Brno, and our move into agentic AI. Agents are part of how I build, so I know where they help and where they fail.
 
@@ -118,8 +118,8 @@ These come from the research and are not optional:
 
 Newest first. Each item has a date range, a company, a title that starts with the domain, 40 to 60 words in the order problem, what he built, result, and tags. One real number per item where Tomáš has one. Numbers must not be invented. Placeholders are marked [TBD].
 
-1. 2022 to 2026, Datamole. A data product for public transport. He led the Databricks adoption and built a team of 5 data engineers. The team adopted Lakeflow early, so it could focus on what the transport operators needed from their data. Result: [TBD]. Tags: Databricks, Lakeflow, AWS.
-2. 2018 to 2022, Datamole. Predictive analytics for electron microscopes. He connected 50+ AWS services into one cloud-native platform, defined fully in code with CDK, and hired and grew the first team of 5. Result: [TBD]. Tags: AWS, CDK, Python.
+1. 2024 to today, Datamole. A data product for public transport. He led the Databricks adoption and built a team of 5 data engineers. The team adopted Lakeflow early, so it could focus on what the transport operators needed from their data. Result: [TBD]. Tags: Databricks, Lakeflow, AWS.
+2. 2018 to today, Datamole. Predictive analytics for electron microscopes. He connected 50+ AWS services into one cloud-native platform, defined fully in code with CDK, and hired and grew the first team of 5. Result: [TBD]. Tags: AWS, CDK, Python.
 3. 2017 to 2018, Atos. An IoT platform where milliseconds counted. Event-driven design with Akka and functional programming, built for low latency, fault tolerance and scale. Tags: Scala, Akka.
 4. 2016 to 2017, Honeywell. Analytics for connected homes. Spark, Cassandra and Kafka behind Honeywell's connected-home platforms. Tags: Spark, Kafka, Cassandra.
 
@@ -129,7 +129,7 @@ This section replaces "Talks". It lists all meetups of the two groups, not only 
 
 Text:
 > **AWS and Databricks User Groups in Brno.**
-> I help organize both groups and speak at them. Since February 2026, we have run 5 meetups, with speakers from AWS, SentinelOne, Sage, Kyndryl and E.ON.
+> I help organize both groups and speak at them. Since February 2026, our speakers have come from companies such as AWS, SentinelOne, Sage, Kyndryl and E.ON.
 
 The sentence with the count must stay true when events are added. Generate it from the event data, or keep it free of numbers.
 

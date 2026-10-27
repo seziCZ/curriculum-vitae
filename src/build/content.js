@@ -55,16 +55,19 @@ export function formatDate(iso) {
   return `${d} ${MONTHS[m - 1]} ${y}`;
 }
 
+const MAX_EXAMPLE_COMPANIES = 5;
+
 export function communityIntro(events, today) {
   const past = events.filter(e => e.date <= today).sort((a, b) => a.date.localeCompare(b.date));
   const intro = 'I help organize both groups and speak at them.';
   if (!past.length) return intro;
   const [y, m] = past[0].date.split('-').map(Number);
-  const companies = [...new Set(past.flatMap(e => e.talks.map(t => t.company)).filter(c => c !== 'Datamole'))];
+  // The companies are examples ("such as"), so a short list of the first ones is enough.
+  const companies = [...new Set(past.flatMap(e => e.talks.map(t => t.company)).filter(c => c !== 'Datamole'))].slice(0, MAX_EXAMPLE_COMPANIES);
   if (!companies.length) return intro;
   const list = companies.length > 1 ? `${companies.slice(0, -1).join(', ')} and ${companies.at(-1)}` : companies[0];
   // No meetup count, so the sentence stays true as new meetups are added.
-  return `${intro} Since ${MONTH_NAMES[m - 1]} ${y}, our speakers have come from ${list}.`;
+  return `${intro} Since ${MONTH_NAMES[m - 1]} ${y}, our speakers have come from companies such as ${list}.`;
 }
 
 function renderTalk(t) {
@@ -138,7 +141,6 @@ export function renderPosts(posts) {
 export function renderPage(template, { events = [], posts = [], today, head = '' } = {}) {
   let html = template
     .replace('<!--@head-->', () => head)
-    .replaceAll('<!--@year-->', () => (today ?? '').slice(0, 4))
     .replace('<!--@community-->', () => renderCommunity(events, today));
   if (posts.length === 0) {
     html = html.replace(/<!--@posts-section-->[\s\S]*?<!--\/@posts-section-->\n?/, '')
