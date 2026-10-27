@@ -19,27 +19,20 @@ function handler(event) {
     return request;
   }
 
-  const pairs = [];
+  // A parameter that repeats has all its values in multiValue. The plain value is only the first one.
   const params = request.querystring || {};
-  Object.keys(params).forEach((key) => {
-    const param = params[key];
-    // A parameter that repeats has all its values in multiValue. The plain value is only the first one.
-    const values = param.multiValue ? param.multiValue : [{ value: param.value }];
-    values.forEach((item) => {
-      pairs.push(encodeQueryPart(key) + '=' + encodeQueryPart(item.value));
-    });
-  });
-
-  let location = 'https://__DOMAIN__' + request.uri;
-  if (pairs.length > 0) {
-    location += '?' + pairs.join('&');
+  let query = '';
+  for (const key in params) {
+    for (const item of params[key].multiValue || [params[key]]) {
+      query += (query ? '&' : '?') + encodeQueryPart(key) + '=' + encodeQueryPart(item.value);
+    }
   }
 
   return {
     statusCode: 301,
     statusDescription: 'Moved Permanently',
     headers: {
-      location: { value: location },
+      location: { value: 'https://__DOMAIN__' + request.uri + query },
     },
   };
 }

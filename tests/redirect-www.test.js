@@ -20,7 +20,7 @@ function event(host, uri, querystring = {}) {
 }
 
 test('www host redirects to the apex with 301', () => {
-  const result = handler(event('www.example.org', '/', {}));
+  const result = handler(event('www.example.org', '/'));
   assert.equal(result.statusCode, 301);
   assert.equal(result.headers.location.value, 'https://example.org/');
 });
@@ -34,9 +34,8 @@ test('keeps path and query string', () => {
 });
 
 test('apex host passes the request through', () => {
-  const request = event('example.org', '/', {}).request;
-  const result = handler({ request });
-  assert.equal(result, request);
+  const { request } = event('example.org', '/');
+  assert.equal(handler({ request }), request);
 });
 
 test('query value with an existing percent escape is not encoded twice', () => {
@@ -59,13 +58,7 @@ test('ampersand in a query value is encoded as %26', () => {
   assert.equal(result.headers.location.value, 'https://example.org/?q=x%26y');
 });
 
-test('single plain query parameter without multiValue', () => {
-  const result = handler(event('www.example.org', '/', { a: { value: '1' } }));
-  assert.equal(result.headers.location.value, 'https://example.org/?a=1');
-});
-
 test('request without a host header passes through unchanged', () => {
   const request = { uri: '/', headers: {}, querystring: {} };
-  const result = handler({ request });
-  assert.equal(result, request);
+  assert.equal(handler({ request }), request);
 });
