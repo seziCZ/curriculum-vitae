@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tomáš Sezima</title>
+<meta name="description" content="I build the data platforms that products and AI agents run on. Data engineering on AWS and Databricks, Brno.">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<div class="grain"></div>
+<nav class="top">
+  <a class="brand" href="#top">Tomáš Sezima</a>
+  <div class="links">
+    <a href="#about">About</a><a href="#work">Work</a><a href="#community">Community</a><!--@posts-nav--><a href="#posts">Posts</a><!--/@posts-nav--><a href="#contact">Contact</a>
+  </div>
+</nav>
+<canvas id="c" aria-hidden="true"></canvas>
+
+<header class="top-hero" id="top">
+  <div class="hero">
+    <div class="bar"><i style="background:var(--rust)"></i><i style="background:var(--blue)"></i><i style="background:var(--pink)"></i></div>
+    <h1>Tomáš Sezima</h1>
+    <p class="claim">I build the data platforms that products and AI agents run on.</p>
+    <p>Head of Data Engineering at Datamole, Brno. 15 years of engineering, 10 of them in data, on AWS and Databricks. I use AI agents in my daily work, and I am still hands-on.</p>
+  </div>
+  <div class="hint" id="hint">Scroll &darr;</div>
+</header>
+
+<main>
+  <section class="block" id="about">
+    <div class="eyebrow">About</div>
+    <h2>The engineering side of data.</h2>
+    <p>I build data platforms: the systems that collect data, make it reliable and deliver it to products and AI agents. I work on the engineering side of data. I do not build dashboards or train models.</p>
+    <p>I have built data systems since 2016: Spark, Kafka and Cassandra at Honeywell, an event-driven IoT platform at Atos, and cloud and Databricks platforms at Datamole. I hired and grew two data engineering teams of 5 people each.</p>
+    <p>Today I lead Data Engineering at Datamole in Brno, and our move into agentic AI. I use AI agents every day, so I know where they help and where they fail.</p>
+  </section>
+
+  <section class="block" id="work">
+    <div class="eyebrow">Selected work</div>
+    <h2>Selected work.</h2>
+    <div class="item">
+      <div class="when">2022 to 2026 · Datamole</div>
+      <h3>A data product for public transport</h3>
+      <p>Transport operators needed reliable data to plan and run their services. I led our adoption of Databricks and built a team of 5 data engineers. We adopted Lakeflow early, so the team could focus on what the operators needed from their data.</p>
+      <div class="tags"><span class="tag">Databricks</span><span class="tag">Lakeflow</span><span class="tag">AWS</span></div>
+    </div>
+    <div class="item">
+      <div class="when">2018 to 2022 · Datamole</div>
+      <h3>Predictive analytics for electron microscopes</h3>
+      <p>Electron microscopes produce large amounts of data. I connected 50+ AWS services into one cloud-native platform for predictive analytics on this data, defined fully in code with CDK. I also hired and grew the first team of 5.</p>
+      <div class="tags"><span class="tag">AWS</span><span class="tag">CDK</span><span class="tag">Python</span></div>
+    </div>
+    <div class="item">
+      <div class="when">2017 to 2018 · Atos</div>
+      <h3>An IoT platform where milliseconds counted</h3>
+      <p>I helped build one of the first full IoT platforms at Atos. The design was event-driven, with Akka and functional programming, for low latency, fault tolerance and scale.</p>
+      <div class="tags"><span class="tag">Scala</span><span class="tag">Akka</span></div>
+    </div>
+    <div class="item">
+      <div class="when">2016 to 2017 · Honeywell</div>
+      <h3>Analytics for connected homes</h3>
+      <p>I worked with Spark, Cassandra and Kafka behind Honeywell's connected-home platforms, before Spark was mainstream.</p>
+      <div class="tags"><span class="tag">Spark</span><span class="tag">Kafka</span><span class="tag">Cassandra</span></div>
+    </div>
+  </section>
+
+  <section class="block" id="community">
+    <div class="eyebrow">Community</div>
+    <h2>AWS and Databricks User Groups in Brno.</h2>
+    <div class="next-event" hidden></div>
+    <!--@community-->
+  </section>
+
+<!--@posts-section-->
+  <section class="block" id="posts">
+    <div class="eyebrow">Posts</div>
+    <h2>Latest posts.</h2>
+    <!--@posts-->
+  </section>
+<!--/@posts-section-->
+
+  <section class="block" id="contact">
+    <div class="eyebrow">Contact</div>
+    <h2>Building a product on top of data? Write to me.</h2>
+    <p>Tell me what you are building and where your data comes from.</p>
+    <a class="btn" href="https://www.linkedin.com/in/sezima">LinkedIn</a><a class="btn ghost" href="mailto:sezimatomas@gmail.com">Email</a>
+  </section>
+  <footer>Tomáš Sezima · Brno</footer>
+</main>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
