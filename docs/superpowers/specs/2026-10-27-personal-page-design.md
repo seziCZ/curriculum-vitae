@@ -112,7 +112,7 @@ These come from the research and are not optional:
 >
 > I have built data systems since 2016: Spark, Kafka and Cassandra at Honeywell, an event-driven IoT platform at Atos, and cloud and Databricks platforms at Datamole. I hired and grew two data engineering teams of 5 people each.
 >
-> Today I lead Data Engineering at Datamole in Brno, and our move into agentic AI. I use AI agents every day, so I know where they help and where they fail.
+> Today I lead Data Engineering at Datamole in Brno, and our move into agentic AI. Agents are part of how I build, so I know where they help and where they fail.
 
 ### 6.4 Selected work
 
