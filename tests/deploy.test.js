@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cacheControlFor, contentTypeFor, planUpload, readOutputs, toKey } from '../scripts/deploy.mjs';
+import { cacheControlFor, contentTypeFor, planUpload, readOutputs, requireProfile, toKey } from '../scripts/deploy.mjs';
 
 test('content types match the spec', () => {
   assert.equal(contentTypeFor('index.html'), 'text/html; charset=utf-8');
@@ -14,6 +14,14 @@ test('content types match the spec', () => {
   assert.equal(contentTypeFor('favicon.ico'), 'image/x-icon');
   assert.equal(contentTypeFor('site.webmanifest'), 'application/manifest+json');
   assert.equal(contentTypeFor('data.json'), 'application/json');
+});
+
+test('photo types have their image content type', () => {
+  assert.equal(contentTypeFor('posts/a.jpg'), 'image/jpeg');
+  assert.equal(contentTypeFor('posts/a.JPEG'), 'image/jpeg');
+  assert.equal(contentTypeFor('posts/a.webp'), 'image/webp');
+  assert.equal(contentTypeFor('posts/a.gif'), 'image/gif');
+  assert.equal(contentTypeFor('posts/a.avif'), 'image/avif');
 });
 
 test('unknown file types get a safe default', () => {
@@ -32,16 +40,32 @@ test('planUpload deletes only keys missing from dist', () => {
   const plan = planUpload(['index.html', 'css/site.css'], ['index.html', 'old.js']);
   assert.deepEqual(plan.deletes, ['old.js']);
   assert.equal(plan.uploads.length, 2);
-  assert.deepEqual(plan.uploads[0], { key: 'index.html', contentType: 'text/html; charset=utf-8', cacheControl: 'no-cache' });
+  assert.deepEqual(plan.uploads.find(upload => upload.key === 'index.html'), { key: 'index.html', contentType: 'text/html; charset=utf-8', cacheControl: 'no-cache' });
+});
+
+test('planUpload uploads html files last', () => {
+  const keys = planUpload(['404.html', 'css/site.css', 'index.html', 'posts/a/index.html', 'posts/a/photo.jpg'], []).uploads.map(upload => upload.key);
+  const lastAsset = keys.findLastIndex(key => !key.endsWith('.html'));
+  const firstPage = keys.findIndex(key => key.endsWith('.html'));
+  assert.equal(keys.length, 5);
+  assert.ok(lastAsset < firstPage, keys.join(', '));
 });
 
 test('keys use forward slashes', () => {
   assert.equal(toKey('css\\site.css'), 'css/site.css');
 });
 
+test('requireProfile explains a missing AWS_PROFILE', () => {
+  const message = 'AWS_PROFILE is not set. In PowerShell: $env:AWS_PROFILE = "<profile>"';
+  assert.throws(() => requireProfile({}), { message });
+  assert.throws(() => requireProfile({ AWS_PROFILE: '' }), { message });
+  assert.doesNotThrow(() => requireProfile({ AWS_PROFILE: 'cv' }));
+});
+
 test('readOutputs explains a missing apply', () => {
-  assert.throws(() => readOutputs('{}'), /run "terraform apply" in infra\/site first/);
-  assert.throws(() => readOutputs(''), /run "terraform apply" in infra\/site first/);
+  const message = 'Terraform outputs are missing: run "terraform apply" in infra/site first';
+  assert.throws(() => readOutputs('{}'), { message });
+  assert.throws(() => readOutputs(''), { message });
 });
 
 test('readOutputs reads the three values', () => {

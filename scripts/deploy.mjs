@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { readdirSync, statSync } from 'node:fs';
-import { dirname, extname, join, basename } from 'node:path';
+import { basename, dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from './build.mjs';
 
@@ -13,12 +13,19 @@ const CONTENT_TYPES = {
   '.woff2': 'font/woff2',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+  '.avif': 'image/avif',
   '.xml': 'application/xml',
   '.txt': 'text/plain; charset=utf-8',
   '.ico': 'image/x-icon',
   '.webmanifest': 'application/manifest+json',
   '.json': 'application/json',
 };
+
+const isHtml = key => extname(key).toLowerCase() === '.html';
 
 export function contentTypeFor(key) {
   return CONTENT_TYPES[extname(key).toLowerCase()] || 'application/octet-stream';
@@ -27,36 +34,30 @@ export function contentTypeFor(key) {
 // Pages and the two crawler files are checked on every visit. Other files have no fingerprint
 // in their name, so one day is the safe limit.
 export function cacheControlFor(key) {
-  const name = basename(key);
-  if (extname(name).toLowerCase() === '.html' || name === 'robots.txt' || name === 'sitemap.xml') return 'no-cache';
-  return 'public, max-age=86400';
+  return isHtml(key) || ['robots.txt', 'sitemap.xml'].includes(basename(key)) ? 'no-cache' : 'public, max-age=86400';
 }
 
 export function toKey(relativePath) {
-  return relativePath.replace(/\\/g, '/');
+  return relativePath.replaceAll('\\', '/');
 }
 
+// The pages go last, so that a visitor never gets a new page before the files it uses.
 export function planUpload(localKeys, remoteKeys) {
   const local = new Set(localKeys);
   return {
-    uploads: localKeys.map(key => ({ key, contentType: contentTypeFor(key), cacheControl: cacheControlFor(key) })),
+    uploads: localKeys.toSorted((a, b) => isHtml(a) - isHtml(b)).map(key => ({ key, contentType: contentTypeFor(key), cacheControl: cacheControlFor(key) })),
     deletes: remoteKeys.filter(key => !local.has(key)),
   };
 }
 
+export function requireProfile(env) {
+  if (!env.AWS_PROFILE) throw new Error('AWS_PROFILE is not set. In PowerShell: $env:AWS_PROFILE = "<profile>"');
+}
+
 export function readOutputs(json) {
-  const hint = 'run "terraform apply" in infra/site first';
-  let data;
-  try {
-    data = JSON.parse(json);
-  } catch {
-    throw new Error(`No Terraform outputs found: ${hint}`);
-  }
-  const value = name => data?.[name]?.value;
-  const siteUrl = value('site_url');
-  const bucket = value('bucket_name');
-  const distributionId = value('distribution_id');
-  if (!siteUrl || !bucket || !distributionId) throw new Error(`A Terraform output is missing: ${hint}`);
+  const outputs = JSON.parse(json || '{}');
+  const [siteUrl, bucket, distributionId] = ['site_url', 'bucket_name', 'distribution_id'].map(name => outputs[name]?.value);
+  if (!siteUrl || !bucket || !distributionId) throw new Error('Terraform outputs are missing: run "terraform apply" in infra/site first');
   return { siteUrl, bucket, distributionId };
 }
 
@@ -67,28 +68,29 @@ function listFiles(dir) {
     .sort();
 }
 
-// Runs a command without a shell. A failure names the command that failed.
+// Runs a command without a shell. An empty AWS_PAGER stops the AWS CLI from waiting in a pager.
 function run(command, args, { capture = false } = {}) {
   try {
-    return execFileSync(command, args, { cwd: root, encoding: 'utf8', stdio: capture ? ['inherit', 'pipe', 'inherit'] : 'inherit' });
+    return execFileSync(command, args, { cwd: root, encoding: 'utf8', env: { ...process.env, AWS_PAGER: '' }, stdio: capture ? ['inherit', 'pipe', 'inherit'] : 'inherit' });
   } catch (err) {
-    throw new Error(`Command failed: ${command} ${args.join(' ')} (${err.message})`);
+    if (err.code === 'ENOENT') throw new Error(`${command} was not found. Install it and check PATH.`);
+    throw new Error(`${command} ${args.join(' ')} failed (exit code ${err.status})`);
   }
 }
 
 async function deploy() {
+  requireProfile(process.env);
   const { siteUrl, bucket, distributionId } = readOutputs(run('terraform', ['-chdir=infra/site', 'output', '-json'], { capture: true }));
   await build('dist', undefined, siteUrl);
   const localKeys = listFiles(join(root, 'dist'));
   const listed = run('aws', ['s3api', 'list-objects-v2', '--bucket', bucket, '--query', 'Contents[].Key', '--output', 'json'], { capture: true });
-  const remoteKeys = JSON.parse(listed || 'null') || [];
-  const { uploads, deletes } = planUpload(localKeys, remoteKeys);
+  const { uploads, deletes } = planUpload(localKeys, JSON.parse(listed) ?? []);
   for (const { key, contentType, cacheControl } of uploads) {
-    run('aws', ['s3', 'cp', join(root, 'dist', key), `s3://${bucket}/${key}`, '--content-type', contentType, '--cache-control', cacheControl]);
+    run('aws', ['s3', 'cp', join(root, 'dist', key), `s3://${bucket}/${key}`, '--content-type', contentType, '--cache-control', cacheControl, '--only-show-errors']);
   }
-  for (const key of deletes) run('aws', ['s3', 'rm', `s3://${bucket}/${key}`]);
-  run('aws', ['cloudfront', 'create-invalidation', '--distribution-id', distributionId, '--paths', '/*']);
-  console.log(`Deployed: ${siteUrl}`);
+  for (const key of deletes) run('aws', ['s3', 'rm', `s3://${bucket}/${key}`, '--only-show-errors']);
+  run('aws', ['cloudfront', 'create-invalidation', '--distribution-id', distributionId, '--paths', '/*', '--query', 'Invalidation.Id', '--output', 'text']);
+  console.log(`Uploaded ${uploads.length} files, deleted ${deletes.length}. Deployed: ${siteUrl}`);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
