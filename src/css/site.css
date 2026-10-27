@@ -33,12 +33,13 @@ section.block:first-child { padding-top:5vh; }
 .eyebrow { font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--rust); margin-bottom:14px; }
 h2 { font-size:clamp(28px,3.4vw,44px); font-weight:700; letter-spacing:-.02em; line-height:1.1; }
 main p { color:var(--muted); line-height:1.6; font-size:17px; margin-top:16px; max-width:52ch; }
-.item { border-top:1px solid rgba(230,216,206,.15); padding:22px 0 4px; margin-top:22px; }
-.item .when { font-size:13px; color:var(--rust); letter-spacing:.06em; }
-.item h3 { font-size:21px; margin-top:6px; font-weight:600; }
+/* Work items and meetups share one look: a thin line above, a clay date line and a title. */
+.item, .event { border-top:1px solid rgba(230,216,206,.15); padding:22px 0 4px; margin-top:22px; }
+.item .when, .event .when { font-size:13px; color:var(--rust); letter-spacing:.06em; }
+.item h3, .event h3 { font-size:21px; margin-top:6px; font-weight:600; }
 .item p { margin-top:8px; }
 .tags { margin-top:12px; display:flex; flex-wrap:wrap; gap:6px; }
-.tags .tag { font-size:12px; border:1px solid rgba(230,216,206,.25); padding:3px 9px; border-radius:20px; color:var(--muted); }
+.tag { font-size:12px; border:1px solid rgba(230,216,206,.25); padding:3px 9px; border-radius:20px; color:var(--muted); }
 .card { background:#232838; padding:18px 20px; border-left:3px solid var(--rust); margin-top:14px; }
 .card .when { font-size:13px; color:var(--muted); }
 .card h3 { font-size:18px; margin-top:4px; font-weight:600; }
@@ -66,14 +67,12 @@ footer { color:var(--muted); font-size:13px; padding:10vh 0 2vh; }
 }
 
 /* Community events. */
-.events { list-style:none; margin-top:8px; }
-.event { background:#232838; padding:18px 20px; border-left:3px solid var(--rust); margin-top:14px; }
-.event .when { font-size:13px; color:var(--muted); }
-.event h3 { font-size:18px; margin-top:4px; font-weight:600; }
-.event .venue { margin-top:4px; font-size:14px; color:var(--muted); }
-.talks { list-style:none; margin-top:10px; font-size:15px; }
+/* Lists keep the left edge of the text column, like the work items. */
+.events, .talks { list-style:none; padding:0; }
+.event .venue { margin-top:4px; font-size:15px; }
+.talks { margin-top:10px; color:var(--muted); font-size:16px; line-height:1.5; max-width:52ch; }
 .talks li { margin-top:6px; }
-.talk-who, .talk-links { color:var(--muted); font-size:14px; }
-.talks .tag { font-size:12px; border:1px solid rgba(230,216,206,.25); padding:2px 9px; border-radius:20px; color:var(--muted); }
+.talk-title { color:var(--light); }
+.talk-who, .talk-links { font-size:14px; }
 .talk-links a, .event-link { color:var(--pink); text-decoration:none; }
 .event-link { display:inline-block; margin-top:10px; font-size:14px; }
