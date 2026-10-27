@@ -7,7 +7,7 @@ Prerequisites: Node 20 or newer, Terraform 1.10 or newer, AWS CLI v2, and an AWS
 ## Local work
 
 ```powershell
-npm install
+npm ci
 npm run dev     # builds and serves the page locally
 npm test
 ```
@@ -42,27 +42,16 @@ Every new terminal needs this line again.
 
    If the apply fails with BucketAlreadyExists, the name is taken. Change it in `infra/bootstrap/main.tf` and in `infra/site/versions.tf`.
 
-   Then commit `infra/bootstrap/terraform.tfstate`:
+   The state file of this step stays on your laptop, and Git ignores it. State files can contain account details, so they never go into the repository. You do not need this file again: the bucket is protected against deletion.
+
+2. Create the site. `infra/site/terraform.tfvars` sets the domain and the email address for the cost and traffic alerts. To change them, edit that file and commit it.
 
    ```powershell
-   git add infra/bootstrap/terraform.tfstate
-   git commit -m "Add the Terraform state of the bootstrap"
-   ```
-
-2. Set the domain and create the site.
-
-   ```powershell
-   Copy-Item infra/site/terraform.tfvars.example infra/site/terraform.tfvars
-   ```
-
-   Fill in the domain in `infra/site/terraform.tfvars`. Then commit the file and create the site:
-
-   ```powershell
-   git add infra/site/terraform.tfvars
-   git commit -m "Set the domain of the page"
    terraform -chdir=infra/site init
    terraform -chdir=infra/site apply
    ```
+
+   AWS then sends an email to confirm the alert subscription. Confirm it, or the traffic alarm cannot reach you.
 
    Terraform finds the hosted zone by the domain name. If the hosted zone is for a parent domain (for example, the page is cv.example.com and the zone is example.com), set `hosted_zone_id`.
 

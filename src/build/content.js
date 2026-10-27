@@ -6,6 +6,8 @@ const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'Ju
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const isText = v => typeof v === 'string' && v.trim() !== '';
+// Links in content must be https, so a javascript: or http: link never reaches the page.
+const isHttps = v => isText(v) && /^https:\/\/[^\s"]+$/.test(v);
 
 // Checks the YYYY-MM-DD form and that the day exists in that month (2026-02-30 does not).
 // Returns an error message, or null when the date is valid.
@@ -25,11 +27,12 @@ export function validateEvent(e) {
   if (!['AWS', 'Databricks'].includes(e.group)) errors.push('group must be AWS or Databricks');
   if (!Number.isInteger(e.number) || e.number < 1) errors.push('number must be a positive integer');
   if (!isText(e.title)) errors.push('title is required');
-  if (!isText(e.url)) errors.push('url is required');
+  if (!isHttps(e.url)) errors.push('url must be an https:// link');
   if (e.venue !== undefined && !isText(e.venue)) errors.push('venue must be text when present');
   if (!Array.isArray(e.talks)) errors.push('talks must be an array');
   else e.talks.forEach((t, i) => {
     for (const k of ['title', 'speaker', 'company']) if (!isText(t?.[k])) errors.push(`talks[${i}].${k} is required`);
+    for (const k of ['slides', 'recording']) if (t?.[k] !== undefined && !isHttps(t[k])) errors.push(`talks[${i}].${k} must be an https:// link`);
   });
   return errors;
 }
@@ -102,7 +105,7 @@ export function validatePost(p) {
   if (dateErr) errors.push(dateErr);
   if (!isText(p.text)) errors.push('text is required');
   if (!isText(p.url) || !/^https:\/\/([a-z0-9-]+\.)*linkedin\.com(\/|$)/i.test(p.url)) errors.push('url must be a linkedin.com link');
-  if (p.image !== undefined && !isText(p.image)) errors.push('image must be text when present');
+  if (p.image !== undefined && !/^[\w.-]+$/.test(p.image)) errors.push('image must be a plain file name in content/posts');
   return errors;
 }
 

@@ -38,6 +38,12 @@ test('apex host passes the request through', () => {
   assert.equal(handler({ request }), request);
 });
 
+test('the default cloudfront.net host redirects to the apex', () => {
+  const result = handler(event('d111111abcdef8.cloudfront.net', '/about'));
+  assert.equal(result.statusCode, 301);
+  assert.equal(result.headers.location.value, 'https://example.org/about');
+});
+
 test('query value with an existing percent escape is not encoded twice', () => {
   const result = handler(event('www.example.org', '/', { q: { value: 'a%20b' } }));
   assert.equal(result.headers.location.value, 'https://example.org/?q=a%20b');

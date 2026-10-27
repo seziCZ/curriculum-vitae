@@ -1,4 +1,5 @@
-domain = "example.org"
+domain      = "example.org"
+alert_email = "you@example.org"
 
 # Only when the hosted zone is for a parent domain, or when two zones have the same name.
 # hosted_zone_id = "Z..."

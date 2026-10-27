@@ -17,6 +17,27 @@ test('build writes the page with the hero copy and self-hosted fonts', async () 
   assert.doesNotMatch(html, /[\u2013\u2014]/);
 });
 
+// The site sends a strict Content-Security-Policy (infra/site/cdn.tf): scripts only from the
+// same origin, no inline scripts and no event handler attributes, no requests to other hosts.
+test('the built pages work under the Content-Security-Policy', async () => {
+  const out = mkdtempSync(join(tmpdir(), 'page-'));
+  await build(out, '2026-10-27');
+  for (const file of ['index.html', '404.html']) {
+    const html = readFileSync(join(out, file), 'utf8');
+    for (const [, attrs, body] of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)) {
+      const dataBlock = /type="application\/ld\+json"/.test(attrs);
+      assert.ok(dataBlock || (/\ssrc="/.test(attrs) && body.trim() === ''), `${file}: inline script`);
+    }
+    assert.doesNotMatch(html, /\son[a-z]+="/, `${file}: event handler attribute`);
+    const loaded = [
+      ...html.matchAll(/<(?:script|img)\b[^>]*\ssrc="([^"]*)"/g),
+      ...html.matchAll(/<link\b[^>]*\srel="(?:stylesheet|icon|apple-touch-icon|preload|modulepreload)"[^>]*\shref="([^"]*)"/g),
+    ].map(m => m[1]);
+    assert.ok(loaded.length > 0, `${file}: no resources found`);
+    for (const url of loaded) assert.doesNotMatch(url, /^(https?:)?\/\//, `${file}: ${url} comes from another host`);
+  }
+});
+
 test('the current work item ends in the build year', async () => {
   const out = mkdtempSync(join(tmpdir(), 'page-'));
   await build(out, '2027-03-15');

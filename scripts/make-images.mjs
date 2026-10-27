@@ -25,11 +25,19 @@ const IMAGES = [
   { url: '/scripts/images/icon.html?size=180', out: 'apple-touch-icon.png', width: 180, height: 180 },
 ];
 
-// A tiny server for the repository, because module scripts do not load from file:// URLs.
+// A tiny server, because module scripts do not load from file:// URLs. It serves only the folders
+// that the designs need, never .git or other files of the repository.
+const SERVED = ['scripts/images', 'src', 'node_modules/@fontsource-variable'].map(dir => join(root, dir) + sep);
 const server = createServer(async (req, res) => {
-  const file = normalize(join(root, decodeURIComponent(new URL(req.url, 'http://x').pathname)));
-  // The query string (for example ?size=96) is for the page script only.
-  if (!file.startsWith(root + sep)) { res.writeHead(403).end(); return; }
+  let file;
+  try {
+    // The query string (for example ?size=192) is for the page script only.
+    file = normalize(join(root, decodeURIComponent(new URL(req.url, 'http://x').pathname)));
+  } catch {
+    res.writeHead(400).end();
+    return;
+  }
+  if (!SERVED.some(dir => file.startsWith(dir))) { res.writeHead(403).end(); return; }
   let body;
   try {
     body = await readFile(file);
@@ -50,7 +58,7 @@ try {
     const out = join(root, 'src/static', img.out);
     rmSync(out, { force: true });
     execFileSync(CHROME, [
-      '--headless=new', `--user-data-dir=${profile}`, '--no-sandbox', '--disable-gpu', '--hide-scrollbars',
+      '--headless=new', `--user-data-dir=${profile}`, '--disable-gpu', '--hide-scrollbars',
       '--force-device-scale-factor=1', `--window-size=${img.width},${img.height}`,
       '--virtual-time-budget=5000', `--screenshot=${out}`, base + img.url,
     ], { stdio: ['ignore', 'ignore', 'pipe'] });

@@ -30,3 +30,20 @@ resource "aws_route53_record" "alias_aaaa" {
     evaluate_target_health = false
   }
 }
+
+# The domain sends no email, so these records tell other mail servers to reject mail that claims
+# to come from it. The CAA record lets only Amazon issue certificates for the domain.
+resource "aws_route53_record" "policy" {
+  for_each = {
+    spf   = { name = var.domain, type = "TXT", value = "v=spf1 -all" }
+    dmarc = { name = "_dmarc.${var.domain}", type = "TXT", value = "v=DMARC1; p=reject" }
+    mx    = { name = var.domain, type = "MX", value = "0 ." }
+    caa   = { name = var.domain, type = "CAA", value = "0 issue \"amazon.com\"" }
+  }
+
+  zone_id = local.zone_id
+  name    = each.value.name
+  type    = each.value.type
+  ttl     = 3600
+  records = [each.value.value]
+}

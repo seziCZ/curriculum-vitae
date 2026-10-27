@@ -8,6 +8,16 @@ variable "domain" {
   }
 }
 
+variable "alert_email" {
+  description = "Email address for the cost and traffic alerts."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", var.alert_email))
+    error_message = "The alert email must be an email address."
+  }
+}
+
 variable "hosted_zone_id" {
   description = "ID of the Route 53 hosted zone. When it is null, the zone is looked up by the domain name."
   type        = string

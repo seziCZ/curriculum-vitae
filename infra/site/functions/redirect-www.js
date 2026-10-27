@@ -1,7 +1,8 @@
 // CloudFront Function, JavaScript runtime 2.0.
 // Terraform replaces the placeholder __DOMAIN__ with the apex domain before it uploads the function.
-// A request for www.<domain> gets a 301 redirect to https://<domain>, with the same path and query string.
-// Requests for any other host, or with no Host header, pass through unchanged.
+// A request for any host other than <domain> (www.<domain>, or the default *.cloudfront.net host)
+// gets a 301 redirect to https://<domain>, with the same path and query string.
+// Requests for <domain>, or with no Host header, pass through unchanged.
 
 // Encodes a query key or value. The result is the same whether CloudFront passes the
 // value decoded or still encoded: existing %XX escapes are restored, and a plus sign stays a plus sign.
@@ -15,7 +16,7 @@ function handler(event) {
   const request = event.request;
   const host = ((request.headers.host || {}).value || '').toLowerCase();
 
-  if (host !== 'www.__DOMAIN__') {
+  if (host === '' || host === '__DOMAIN__') {
     return request;
   }
 

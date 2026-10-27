@@ -18,7 +18,7 @@ Goals:
 Non-goals:
 - No CI pipeline. Tomáš deploys from his laptop.
 - No domain registration. The domain and its hosted zone are created outside this design.
-- No CloudFront flat-rate plan, no WAF, no logging, no monitoring.
+- No CloudFront flat-rate plan, no WAF and no logging. The only monitoring is two free alerts by email (section 4.2).
 
 Anti-goals (the deployment fails if any of these is true, even if the page loads):
 - The S3 bucket of the page is publicly readable.
@@ -44,7 +44,7 @@ A small Terraform configuration with local state. It creates one S3 bucket for t
 - all public access blocked
 - `prevent_destroy`, so it is not deleted by accident
 
-Its local state file is committed to the repository. It contains no secrets, only the bucket. The bucket has the fixed name `sezima-curriculum-vitae-tfstate`, and the backend of `infra/site` uses the same name. The name must be globally unique, so if it is taken, it is changed in both places.
+Its local state file stays on the laptop and is ignored by Git, like every Terraform state and plan file, because state can contain account details. The bucket has the fixed name `sezima-curriculum-vitae-tfstate`, and the backend of `infra/site` uses the same name. The name must be globally unique, so if it is taken, it is changed in both places.
 
 ### 4.2 Main configuration: `infra/site`
 
@@ -65,12 +65,13 @@ Resources:
    - viewer protocol policy: redirect HTTP to HTTPS
    - default root object: `index.html`
    - cache policy: the AWS managed `CachingOptimized`, with compression on (gzip and Brotli)
-   - response headers policy: the AWS managed `SecurityHeadersPolicy` (HSTS and the other standard security headers)
+   - response headers policy: a custom policy with a strict Content-Security-Policy (`default-src 'none'`, scripts, styles, images and fonts only from the site, inline styles and `data:` images allowed), HSTS with subdomains, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin` and a `Permissions-Policy` that turns off camera, microphone and location. A build test checks that the pages stay within the policy.
    - custom error responses: S3 returns 403 for a missing object when CloudFront has no list permission, so both 403 and 404 are answered with `/404.html` and status 404
    - price class: `PriceClass_100` (North America and Europe), which is enough for the audience
    - IPv6 on
-4. **CloudFront Function** (viewer request): when the host header is `www.domain`, it answers with a 301 redirect to `https://domain` plus the same path and query string. It does nothing for other requests.
-5. **Route 53 records** in the existing zone: A and AAAA alias records for `domain` and for `www.domain`, both pointing to the distribution.
+4. **CloudFront Function** (viewer request): when the host header is anything other than `domain` (`www.domain`, or the default `*.cloudfront.net` host), it answers with a 301 redirect to `https://domain` plus the same path and query string. Requests for `domain`, or without a Host header, pass through.
+5. **Route 53 records** in the existing zone: A and AAAA alias records for `domain` and for `www.domain`, both pointing to the distribution. The domain sends no email, so it also gets `v=spf1 -all`, a DMARC record with `p=reject` and a null MX (`0 .`), so that nobody can send mail that claims to come from it. A CAA record allows only Amazon to issue certificates.
+6. **Alerts**: an AWS Budgets cost budget for the account and a CloudWatch alarm on CloudFront requests, both sending email to `alert_email` (set in `terraform.tfvars`). The alarm uses an SNS topic in `us-east-1`, where CloudFront metrics live.
 
 Outputs: `site_url` (`https://domain/`), `bucket_name`, `distribution_id`.
 
@@ -99,9 +100,9 @@ The AWS profile comes from the `AWS_PROFILE` environment variable, which the AWS
 - The address without `www` is the main one; `www` redirects to it.
 - The pay-as-you-go pricing is used, not the CloudFront flat-rate "Free plan". For this page the normal pricing is already about $0, and it is simpler to define in Terraform.
 - `PriceClass_100`, because the audience is in Europe and North America.
-- No access logs and no monitoring, to keep it simple and free.
+- No access logs, to keep it simple and free. A cost budget (email above $2 actual or $10 forecast per month) and a CloudWatch alarm on CloudFront requests (more than 300,000 per day) report unusual cost or traffic; both are free.
 - One day of browser caching for CSS, JavaScript, fonts and images. HTML is checked on every visit.
-- The bootstrap state file is committed to Git.
+- No Terraform state file is committed to Git.
 - The upload is a Node script that calls the AWS CLI, so the content types and cache headers are set explicitly per file type.
 - The hosted zone has no records yet for `domain` or `www.domain` (the domain is not bought yet). Terraform does not overwrite existing records (no `allow_overwrite`): if one exists, `terraform apply` stops with an error and nothing old is deleted.
 - The domain is delegated to the hosted zone before the first `terraform apply` (step 0 in 4.4).

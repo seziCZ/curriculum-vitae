@@ -26,6 +26,12 @@ test('validatePost requires date, text and a linkedin.com url', () => {
   assert.ok(validatePost({ ...mk('2026-04-01'), url: 'https://example.com/x' }).some(e => e.includes('url')));
   assert.ok(validatePost({ ...mk('2026-04-01'), url: 'https://evil.com/?linkedin.com' }).some(e => e.includes('url')));
 });
+test('validatePost accepts only a plain file name as image', () => {
+  assert.deepEqual(validatePost(mk('2026-04-01', { image: 'photo-1.jpg' })), []);
+  for (const image of ['../secret.png', 'sub/a.png', 'a b.png']) {
+    assert.ok(validatePost(mk('2026-04-01', { image })).some(e => e.includes('image')), image);
+  }
+});
 test('renderPage removes posts section and nav link when there are no posts', () => {
   const html = renderPage(template, { events: [], posts: [], today: '2026-10-27' });
   assert.ok(!html.includes('id="posts"'));

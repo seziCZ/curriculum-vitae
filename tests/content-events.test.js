@@ -36,6 +36,14 @@ test('renderEvent escapes text and skips missing optional fields', () => {
   assert.match(html, /A &amp; B &lt;test&gt;/);
   assert.doesNotMatch(html, /undefined|null/);
 });
+test('validateEvent accepts only https links', () => {
+  assert.ok(validateEvent({ ...valid, url: 'javascript:alert(1)' }).some(e => e.includes('url')));
+  assert.ok(validateEvent({ ...valid, url: 'http://example.org' }).some(e => e.includes('url')));
+  const talk = { title: 'T', speaker: 'S', company: 'C' };
+  assert.ok(validateEvent({ ...valid, talks: [{ ...talk, slides: 'javascript:x' }] }).some(e => e.includes('slides')));
+  assert.ok(validateEvent({ ...valid, talks: [{ ...talk, recording: 'ftp://x' }] }).some(e => e.includes('recording')));
+  assert.deepEqual(validateEvent({ ...valid, talks: [{ ...talk, slides: 'https://example.org/s.pdf' }] }), []);
+});
 test('renderCommunity shows only the 5 newest meetups', () => {
   const more = [
     ...events,
