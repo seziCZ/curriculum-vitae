@@ -46,12 +46,12 @@ test('the contact email is the address at the domain', async () => {
   assert.doesNotMatch(html, /gmail\.com/);
 });
 
-test('ongoing work items end in "today", so they stay true in later years', async () => {
+test('ongoing work items end in the build year', async () => {
   const out = mkdtempSync(join(tmpdir(), 'page-'));
   await build(out, '2027-03-15');
   const html = readFileSync(join(out, 'index.html'), 'utf8');
-  assert.match(html, /2024 to today · Datamole/);
-  assert.match(html, /2018 to today · Datamole/);
+  assert.match(html, /2024 to 2027 · Datamole/);
+  assert.match(html, /2018 to 2027 · Datamole/);
   assert.doesNotMatch(html, /<!--@/);
 });
 
