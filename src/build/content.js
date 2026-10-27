@@ -58,10 +58,10 @@ export function communityIntro(events, today) {
   if (!past.length) return intro;
   const [y, m] = past[0].date.split('-').map(Number);
   const companies = [...new Set(past.flatMap(e => e.talks.map(t => t.company)).filter(c => c !== 'Datamole'))];
+  if (!companies.length) return intro;
   const list = companies.length > 1 ? `${companies.slice(0, -1).join(', ')} and ${companies.at(-1)}` : companies[0];
-  const speakers = list ? `, with speakers from ${list}` : '';
-  const noun = past.length === 1 ? 'meetup' : 'meetups';
-  return `${intro} Since ${MONTH_NAMES[m - 1]} ${y}, we have run ${past.length} ${noun}${speakers}.`;
+  // No meetup count, so the sentence stays true as new meetups are added.
+  return `${intro} Since ${MONTH_NAMES[m - 1]} ${y}, our speakers have come from ${list}.`;
 }
 
 function renderTalk(t) {
@@ -132,6 +132,7 @@ export function renderPosts(posts) {
 export function renderPage(template, { events = [], posts = [], today, head = '' } = {}) {
   let html = template
     .replace('<!--@head-->', () => head)
+    .replaceAll('<!--@year-->', () => (today ?? '').slice(0, 4))
     .replace('<!--@community-->', () => renderCommunity(events, today));
   if (posts.length === 0) {
     html = html.replace(/<!--@posts-section-->[\s\S]*?<!--\/@posts-section-->\n?/, '')

@@ -15,10 +15,15 @@ test('validateEvent reports missing fields', () => {
   assert.ok(validateEvent({ ...valid, date: '20.10.2026' }).some(e => e.includes('date')));
 });
 test('formatDate', () => assert.equal(formatDate('2026-10-20'), '20 Oct 2026'));
-test('communityIntro counts past meetups and outside companies', () => {
+test('communityIntro names the start and the outside companies, without a count', () => {
   assert.equal(communityIntro(events, '2026-10-27'),
-    'I help organize both groups and speak at them. Since February 2026, we have run 5 meetups, with speakers from AWS, SentinelOne, Sage, Kyndryl and E.ON.');
-  assert.match(communityIntro(events, '2026-10-10'), /we have run 4 meetups/);
+    'I help organize both groups and speak at them. Since February 2026, our speakers have come from AWS, SentinelOne, Sage, Kyndryl and E.ON.');
+  assert.equal(communityIntro(events, '2026-10-10'),
+    'I help organize both groups and speak at them. Since February 2026, our speakers have come from AWS, SentinelOne, Sage and Kyndryl.');
+  assert.doesNotMatch(communityIntro(events, '2026-10-27'), /\d+ meetups?/);
+});
+test('communityIntro without outside speakers is only the first sentence', () => {
+  assert.equal(communityIntro([], '2026-10-27'), 'I help organize both groups and speak at them.');
 });
 test('renderEvent marks my talks and links the event', () => {
   const html = renderEvent(databricks1);

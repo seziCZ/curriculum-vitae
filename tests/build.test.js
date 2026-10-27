@@ -17,6 +17,14 @@ test('build writes the page with the hero copy and self-hosted fonts', async () 
   assert.doesNotMatch(html, /[\u2013\u2014]/);
 });
 
+test('the current work item ends in the build year', async () => {
+  const out = mkdtempSync(join(tmpdir(), 'page-'));
+  await build(out, '2027-03-15');
+  const html = readFileSync(join(out, 'index.html'), 'utf8');
+  assert.match(html, /2022 to 2027 · Datamole/);
+  assert.doesNotMatch(html, /<!--@/);
+});
+
 test('build puts one next-event slot after the Community intro', async () => {
   const out = mkdtempSync(join(tmpdir(), 'page-'));
   await build(out, '2026-10-27');
