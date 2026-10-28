@@ -124,6 +124,14 @@ export function drawTint(ctx, dpr, lay, l, alpha) {
   poly(ctx, [T, R, B, L], LAYERS[l].col);
 }
 
+// A tile standing up from layer l (see ripple.js). It is drawn after the slab tint, so it carries the tint
+// itself and looks the same as the flat tiles when it lies down.
+export function drawLiftedTile(ctx, dpr, tl, m, l) {
+  drawTile(ctx, dpr, tl, m, 1);
+  ctx.globalAlpha = .3; ctx.fillStyle = LAYERS[l].col;
+  ctx.fillRect(-.5, -.5, 1, 1);
+}
+
 // Splits the text into lines no wider than maxW. A single word wider than maxW keeps its own line.
 export function wrapText(ctx, text, maxW) {
   const lines = [''];

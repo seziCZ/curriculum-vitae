@@ -5,7 +5,8 @@ import { clamp, ease, lerp } from './math.js';
 import { buildWall, idleStep } from './wall.js';
 import { panelFor, splitTiles, stackLayout, assignStack } from './layout.js';
 import { scrollPhases, slabAlpha, reducedPhases, releaseOffset } from './progress.js';
-import { growth, drawTile, drawLeaving, drawFlying, drawSides, drawTint, drawLabel } from './draw.js';
+import { growth, drawTile, drawLeaving, drawFlying, drawSides, drawTint, drawLabel, drawLiftedTile } from './draw.js';
+import { RIPPLE_EVERY, rippleMs, startRipple, rippleStep, rippleParts } from './ripple.js';
 import { showNextEvent } from './next-event.js';
 
 const FADE_MS = 300;
@@ -26,6 +27,7 @@ export function createScene(canvas, { reducedMotion = false, dpr = 1, rand = Mat
   const ctx = canvas.getContext('2d');
   const idle = { lastFlip: 0, lastData: 0 };
   let W, H, panel, lay, tiles = [], leaving = [], extras = [], layers = [[], [], []];
+  let ripple = null, lastRipple = 0; // a row of tiles flipping over in one layer (see ripple.js)
   let start = null; // time of the first frame, for the opening
   let fade = null;  // reduced motion: the fade between the wall (0) and the stack (1)
 
@@ -40,6 +42,7 @@ export function createScene(canvas, { reducedMotion = false, dpr = 1, rand = Mat
     leaving = split.leaving;
     lay = stackLayout(panel, split.kept.length, H);
     ({ layers, extras } = assignStack(split.kept, lay, rand));
+    ripple = null;
   }
 
   // A phone has an empty panel, so it never draws a stack (see panelFor).
@@ -56,11 +59,22 @@ export function createScene(canvas, { reducedMotion = false, dpr = 1, rand = Mat
     for (const tl of leaving) drawLeaving(ctx, dpr, tl, a, growth(t, tl.at));
     if (!hasStack()) return;
     const slabQ = slabAlpha(build);
+    // Ripples run only while the stack is complete. Scrolling back ends a running ripple at once.
+    const ready = build >= 1 && slabQ >= 1;
+    if (ripple && (!ready || now - ripple.at >= rippleMs(ripple))) { ripple = null; lastRipple = now; }
+    if (!ready) lastRipple = now;
+    else if (!ripple && now - lastRipple >= RIPPLE_EVERY) ripple = startRipple(layers, [...extras, ...leaving], lay.n, now, rand);
+    if (ripple) rippleStep(ripple, now);
+    // Tiles in the air are drawn after the flat ones, from the back to the front.
+    const parts = ripple ? rippleParts(ripple, now).sort((a, b) => (a.tile.cell.u + a.tile.cell.v) - (b.tile.cell.u + b.tile.cell.v)) : [];
+    const inAir = new Set(parts.map(pt => pt.tile));
+
     for (const tl of extras) drawFlying(ctx, dpr, tl, build, growth(t, tl.at));
     for (let l = 0; l < 3; l++) {
       if (slabQ > 0) drawSides(ctx, dpr, lay, l, slabQ);
-      for (const tl of layers[l]) drawFlying(ctx, dpr, tl, build, growth(t, tl.at));
+      for (const tl of layers[l]) if (!inAir.has(tl)) drawFlying(ctx, dpr, tl, build, growth(t, tl.at));
       if (slabQ > 0) drawTint(ctx, dpr, lay, l, slabQ);
+      if (ripple && ripple.l === l) for (const pt of parts) drawLiftedTile(ctx, dpr, pt.tile, pt.m, l);
     }
     if (lay.labels) for (let l = 0; l < 3; l++) if (labels[l] > 0) drawLabel(ctx, dpr, lay, l, labels[l]);
   }
