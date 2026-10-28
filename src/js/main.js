@@ -4,7 +4,7 @@ import { C } from './palette.js';
 import { clamp, ease, lerp } from './math.js';
 import { buildWall, idleStep } from './wall.js';
 import { panelFor, splitTiles, stackLayout, assignStack } from './layout.js';
-import { scrollPhases, slabAlpha, reducedPhases } from './progress.js';
+import { scrollPhases, slabAlpha, reducedPhases, releaseOffset } from './progress.js';
 import { growth, drawTile, drawLeaving, drawFlying, drawSides, drawTint, drawLabel } from './draw.js';
 import { showNextEvent } from './next-event.js';
 
@@ -117,6 +117,7 @@ function wirePage() {
   const about = document.getElementById('about');
   const end = document.getElementById('posts') || document.getElementById('community');
   const hint = document.getElementById('hint');
+  const contact = document.getElementById('contact');
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const pixelRatio = () => Math.min(window.devicePixelRatio || 1, 2);
   // Position on the page. offsetTop would be relative to <main>, which is positioned.
@@ -145,7 +146,7 @@ function wirePage() {
     }, 150);
   });
 
-  let first = null;
+  let first = null, lastLift = 0;
   function loop(now) {
     if (first === null) first = now;
     const sy = window.scrollY;
@@ -156,6 +157,9 @@ function wirePage() {
     // The hint appears after the opening (at once with reduced motion) and goes away on the first scroll.
     const shown = motion.matches ? 1 : clamp(((now - first) / 1000 - 2) / .6);
     if (hint) hint.style.opacity = shown * (1 - clamp(sy / 80));
+    // Before Contact, the stack lets go and scrolls up with the page, so Contact has the screen to itself.
+    const lift = contact ? releaseOffset(sy, pageTop(contact), canvas.clientHeight) : 0;
+    if (lift !== lastLift) { canvas.style.transform = lift ? `translateY(${-lift}px)` : ''; lastLift = lift; }
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);

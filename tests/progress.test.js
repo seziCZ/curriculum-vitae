@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { scrollPhases, tileProgress, slabAlpha, reducedPhases } from '../src/js/progress.js';
+import { scrollPhases, tileProgress, slabAlpha, reducedPhases, releaseOffset } from '../src/js/progress.js';
 
 const LAYOUT = { H: 900, heroH: 765, startTop: 765, endTop: 3465, endHeight: 600 };
 
@@ -54,4 +54,14 @@ test('reduced motion shows the stack from About on', () => {
   assert.equal(reducedPhases({ sy: 0, H: 900, startTop: 765 }).stack, false);
   assert.equal(reducedPhases({ sy: 404, H: 900, startTop: 765 }).stack, false);
   assert.equal(reducedPhases({ sy: 405, H: 900, startTop: 765 }).stack, true);
+});
+
+// The wall stays pinned while the visitor reads. Once Contact enters the screen, it scrolls away with the page,
+// so it never sits next to Contact.
+test('the wall scrolls away with the page once Contact enters the screen', () => {
+  const contactTop = 4200, H = 900;
+  assert.equal(releaseOffset(0, contactTop, H), 0);
+  assert.equal(releaseOffset(contactTop - H, contactTop, H), 0);
+  assert.equal(releaseOffset(contactTop - H + 250, contactTop, H), 250);
+  assert.equal(releaseOffset(contactTop, contactTop, H), H);
 });

@@ -26,3 +26,7 @@ export const slabAlpha = build => ease(clamp((build - .55) / .25));
 export function reducedPhases({ sy, H, startTop }) {
   return { stack: sy >= startTop - .4 * H };
 }
+
+// How far the wall has scrolled up with the page: 0 until the top of Contact enters the screen,
+// then as far as the page has scrolled since.
+export const releaseOffset = (sy, contactTop, H) => Math.max(0, sy - (contactTop - H));
