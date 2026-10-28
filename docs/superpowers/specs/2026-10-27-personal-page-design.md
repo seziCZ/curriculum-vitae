@@ -66,7 +66,7 @@ The first screen is a wall of square tiles, as in the prototype. The tiles have 
 
 ### 5.3 Layout and scroll behavior
 
-- A fixed menu at the top: the name on the left, and links to About, Work, Community, Posts and Contact on the right.
+- A fixed menu at the top: the name on the left, and links to About, Work, Community, Posts and Contact on the right. The link of the section being read is light; the others are muted. No underline and no bold, so nothing shifts. A section counts as read once its top passes a line a third of the way down the screen; at the bottom of the page, Contact is the active one. In the hero no link is active. On a phone the row of links scrolls sideways to show the active one.
 - The hero is 85% of the screen height, so the top of the About section is visible below it.
 - Desktop: when the visitor scrolls, the text column (left half, opaque navy) slides up over the wall. At the same time, the tiles in the left half leave the screen, each by the shortest way out. The wall stays only in the right half, which is sticky.
 - While About passes, the tiles in the right half build an isometric stack of three layers at once. Tiles that are not needed leave. No tile may stay behind outside the stack.

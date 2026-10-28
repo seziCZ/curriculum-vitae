@@ -4,7 +4,7 @@ import { C } from './palette.js';
 import { clamp, ease, lerp } from './math.js';
 import { buildWall, idleStep } from './wall.js';
 import { panelFor, splitTiles, stackLayout, assignStack } from './layout.js';
-import { scrollPhases, slabAlpha, reducedPhases, releaseOffset } from './progress.js';
+import { scrollPhases, slabAlpha, reducedPhases, releaseOffset, activeSection } from './progress.js';
 import { growth, drawTile, drawLeaving, drawFlying, drawSides, drawTint, drawLabel, drawLiftedTile } from './draw.js';
 import { ripplePause, rippleMs, startRipple, rippleStep, rippleParts } from './ripple.js';
 import { showNextEvent } from './next-event.js';
@@ -136,6 +136,9 @@ function wirePage() {
   const end = document.getElementById('posts') || document.getElementById('community');
   const hint = document.getElementById('hint');
   const contact = document.getElementById('contact');
+  const menu = document.querySelector('nav .links');
+  const navLinks = menu ? [...menu.querySelectorAll('a')] : [];
+  const navSections = navLinks.map(a => document.querySelector(a.getAttribute('href')));
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const pixelRatio = () => Math.min(window.devicePixelRatio || 1, 2);
   // Position on the page. offsetTop would be relative to <main>, which is positioned.
@@ -164,7 +167,7 @@ function wirePage() {
     }, 150);
   });
 
-  let first = null, lastLift = 0;
+  let first = null, lastLift = 0, lastActive = -1;
   function loop(now) {
     if (first === null) first = now;
     const sy = window.scrollY;
@@ -178,6 +181,15 @@ function wirePage() {
     // Before Contact, the stack lets go and scrolls up with the page, so Contact has the screen to itself.
     const lift = contact ? releaseOffset(sy, pageTop(contact), canvas.clientHeight) : 0;
     if (lift !== lastLift) { canvas.style.transform = lift ? `translateY(${-lift}px)` : ''; lastLift = lift; }
+    // The menu link of the section being read is lit. On a phone the menu row scrolls sideways to show it.
+    const active = activeSection(navSections.map(pageTop), sy, innerHeight, document.documentElement.scrollHeight);
+    if (active !== lastActive) {
+      navLinks.forEach((a, i) => { a.classList.toggle('active', i === active); if (i === active) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current'); });
+      const link = navLinks[active];
+      if (link && (link.offsetLeft < menu.scrollLeft || link.offsetLeft + link.offsetWidth > menu.scrollLeft + menu.clientWidth))
+        menu.scrollTo({ left: link.offsetLeft - (menu.clientWidth - link.offsetWidth) / 2 });
+      lastActive = active;
+    }
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);

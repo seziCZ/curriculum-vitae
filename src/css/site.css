@@ -12,9 +12,9 @@ h1, h2, h3, nav, .eyebrow, .hint, .btn, .when, .claim, .tag { font-family:'Space
 nav.top { position:fixed; top:0; left:0; right:0; height:var(--nav); z-index:11; display:flex; align-items:center;
   justify-content:space-between; gap:16px; padding:0 var(--m); background:var(--navy); }
 nav .brand { font-weight:700; letter-spacing:-.01em; color:var(--light); text-decoration:none; white-space:nowrap; }
-nav .links { display:flex; gap:clamp(12px,2vw,28px); font-size:14px; overflow-x:auto; }
-nav .links a { color:var(--muted); text-decoration:none; white-space:nowrap; }
-nav .links a:hover { color:var(--light); }
+nav .links { position:relative; display:flex; gap:clamp(12px,2vw,28px); font-size:14px; overflow-x:auto; }
+nav .links a { color:var(--muted); text-decoration:none; white-space:nowrap; transition:color .2s; }
+nav .links a:hover, nav .links a.active { color:var(--light); }
 
 /* The tile wall is one fixed canvas. While the page scrolls, it moves into the right half. */
 #c { position:fixed; inset:0; width:100vw; height:100vh; z-index:1; pointer-events:none; }

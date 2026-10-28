@@ -30,3 +30,11 @@ export function reducedPhases({ sy, H, startTop }) {
 // How far the wall has scrolled up with the page: 0 until the top of Contact enters the screen,
 // then as far as the page has scrolled since.
 export const releaseOffset = (sy, contactTop, H) => Math.max(0, sy - (contactTop - H));
+
+// The section the visitor is reading, for the menu: the last one whose top has passed a line a third of the way
+// down the screen, or -1 in the hero. At the bottom of the page it is the last section, which may be too short
+// to reach the line.
+export function activeSection(tops, sy, H, pageH) {
+  if (sy + H >= pageH - 1) return tops.length - 1;
+  return tops.filter(top => top <= sy + H / 3).length - 1;
+}

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { scrollPhases, tileProgress, slabAlpha, reducedPhases, releaseOffset } from '../src/js/progress.js';
+import { scrollPhases, tileProgress, slabAlpha, reducedPhases, releaseOffset, activeSection } from '../src/js/progress.js';
 
 const LAYOUT = { H: 900, heroH: 765, startTop: 765, endTop: 3465, endHeight: 600 };
 
@@ -64,4 +64,17 @@ test('the wall scrolls away with the page once Contact enters the screen', () =>
   assert.equal(releaseOffset(contactTop - H, contactTop, H), 0);
   assert.equal(releaseOffset(contactTop - H + 250, contactTop, H), 250);
   assert.equal(releaseOffset(contactTop, contactTop, H), H);
+});
+
+test('the active menu link is the section under a line a third of the way down the screen', () => {
+  const tops = [800, 1600, 3000, 4000], H = 900, pageH = 5000;
+  assert.equal(activeSection(tops, 0, H, pageH), -1, 'none in the hero');
+  assert.equal(activeSection(tops, 800 - 300 - 1, H, pageH), -1);
+  assert.equal(activeSection(tops, 800 - 300, H, pageH), 0);
+  assert.equal(activeSection(tops, 2000, H, pageH), 1);
+  assert.equal(activeSection(tops, 3000 - 300, H, pageH), 2);
+  // The last section is short: at the bottom of the page it is active, even though its top never reaches the line.
+  const short = [800, 1600, 3000, 4600];
+  assert.equal(activeSection(short, 4000, H, pageH), 2);
+  assert.equal(activeSection(short, pageH - H, H, pageH), 3);
 });
