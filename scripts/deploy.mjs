@@ -20,6 +20,7 @@ const CONTENT_TYPES = {
   '.avif': 'image/avif',
   '.xml': 'application/xml',
   '.txt': 'text/plain; charset=utf-8',
+  '.md': 'text/markdown; charset=utf-8',
   '.ico': 'image/x-icon',
   '.webmanifest': 'application/manifest+json',
   '.json': 'application/json',
@@ -31,10 +32,11 @@ export function contentTypeFor(key) {
   return CONTENT_TYPES[extname(key).toLowerCase()] || 'application/octet-stream';
 }
 
-// Pages and the two crawler files are checked on every visit. Other files have no fingerprint
-// in their name, so one day is the safe limit.
+// Pages, their Markdown versions and the crawler files are checked on every visit. Other files have
+// no fingerprint in their name, so one day is the safe limit.
 export function cacheControlFor(key) {
-  return isHtml(key) || ['robots.txt', 'sitemap.xml'].includes(basename(key)) ? 'no-cache' : 'public, max-age=86400';
+  const fresh = isHtml(key) || extname(key).toLowerCase() === '.md' || ['robots.txt', 'sitemap.xml', 'llms.txt'].includes(basename(key));
+  return fresh ? 'no-cache' : 'public, max-age=86400';
 }
 
 export function toKey(relativePath) {

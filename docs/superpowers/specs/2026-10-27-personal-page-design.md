@@ -166,6 +166,7 @@ One clear next step, 1 or 2 sentences, with the LinkedIn and email links. Draft:
 
 - Events and posts are data files in the repository, one file per event and one per post. The page renders them in its own style.
 - Adding an event or a post is: add one file, then build and deploy. This should take Tomáš about a minute.
+- For AI agents, the build also writes `llms.txt` (see llmstxt.org: the name, the claim, the intro, links to the Markdown page and the contacts) and `index.html.md`, the whole page as Markdown, meetups included. Both are made from the rendered page, so they change with it on every deploy. The page links the Markdown version with `<link rel="alternate" type="text/markdown">`.
 
 ## 8. Calls I made (Tomáš did not decide these explicitly)
 

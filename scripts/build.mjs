@@ -3,6 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadEvents, loadPosts, renderPage } from '../src/build/content.js';
 import { normalizeSiteUrl, renderHead, renderRobots, renderSitemap } from '../src/build/seo.js';
+import { renderLlmsTxt, renderMarkdown } from '../src/build/agents.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FONT_FAMILIES = ['space-grotesk', 'inter'];
@@ -42,7 +43,10 @@ export async function build(outDir = 'dist', today = localIsoDate(), siteUrl = p
   cpSync(join(root, 'src/static'), outDir, { recursive: true });
   const template = readFileSync(join(root, 'src/index.html'), 'utf8');
   const head = renderHead({ siteUrl, today });
-  writeFileSync(join(outDir, 'index.html'), renderPage(template, { events, posts, today, head }));
+  const page = renderPage(template, { events, posts, today, head });
+  writeFileSync(join(outDir, 'index.html'), page);
+  writeFileSync(join(outDir, 'index.html.md'), renderMarkdown(page, siteUrl, today));
+  writeFileSync(join(outDir, 'llms.txt'), renderLlmsTxt(page, siteUrl));
   writeFileSync(join(outDir, 'robots.txt'), renderRobots(siteUrl));
   writeFileSync(join(outDir, 'sitemap.xml'), renderSitemap(siteUrl, today));
 }

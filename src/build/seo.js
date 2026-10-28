@@ -54,6 +54,8 @@ export function renderHead({ siteUrl, today }) {
     '<link rel="icon" href="favicon.svg" type="image/svg+xml">',
     '<link rel="icon" href="favicon-192.png" sizes="192x192" type="image/png">',
     '<link rel="apple-touch-icon" href="apple-touch-icon.png">',
+    // The same page as Markdown, for AI agents (see agents.js).
+    '<link rel="alternate" type="text/markdown" href="index.html.md">',
     meta('property', 'og:type', 'profile'),
     meta('property', 'profile:first_name', 'Tomáš'),
     meta('property', 'profile:last_name', 'Sezima'),
