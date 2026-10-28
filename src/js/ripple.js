@@ -4,7 +4,9 @@
 // Pure functions with no browser APIs. Random numbers are injected.
 import { clamp, ease } from './math.js';
 
-export const RIPPLE_EVERY = 3500; // ms from the end of one ripple to the start of the next
+// The pause before the next ripple is random, so the ripples do not keep a beat. The first one comes soon
+// after the stack forms, so a visitor sees it before scrolling on.
+export const ripplePause = (rand = Math.random, first = false) => first ? 2000 + rand() * 2000 : 5000 + rand() * 7000;
 const FLIP_MS = 700;              // one tile flipping over
 const STAGGER = 140;              // ms between the starts of neighboring tiles
 

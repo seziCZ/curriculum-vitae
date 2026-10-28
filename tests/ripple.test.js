@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { edgeOnAngle, rippleMs, rippleParts, rippleStep, startRipple } from '../src/js/ripple.js';
+import { edgeOnAngle, rippleMs, rippleParts, ripplePause, rippleStep, startRipple } from '../src/js/ripple.js';
 import { createScene } from '../src/js/main.js';
 import { canvasStub, seeded } from './helpers.js';
 
@@ -88,4 +88,12 @@ test('in the scene, ripples change tile looks but every tile keeps its cell', ()
     assert.notEqual(looks(), first, `no look changed at ${W}`);
     assert.ok(layers.every((ts, l) => ts.every((t, i) => t === cells[l][i] && t.cell.l === l)));
   }
+});
+
+test('the pause between ripples is random: 2 to 4 s before the first, then 5 to 12 s', () => {
+  const rand = seeded(8), firsts = [], laters = [];
+  for (let i = 0; i < 200; i++) { firsts.push(ripplePause(rand, true)); laters.push(ripplePause(rand)); }
+  assert.ok(firsts.every(p => p >= 2000 && p <= 4000));
+  assert.ok(laters.every(p => p >= 5000 && p <= 12000));
+  assert.ok(Math.max(...laters) - Math.min(...laters) > 5000, 'spread over the range');
 });
