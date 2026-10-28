@@ -86,3 +86,10 @@ test('build has the 3 layer sentences as text in About', async () => {
   assert.match(about, /Govern: People trust data only when its meaning, quality and access are clear\./);
   assert.match(about, /Act: Apps, reports and AI agents turn this data into decisions and actions\./);
 });
+
+test('the microscope item names its scale', async () => {
+  const out = mkdtempSync(join(tmpdir(), 'page-'));
+  await build(out, '2026-10-27');
+  const html = readFileSync(join(out, 'index.html'), 'utf8');
+  assert.match(html, /defined fully in code with CDK\. We have connected hundreds of microscopes to it\. I also hired/);
+});
