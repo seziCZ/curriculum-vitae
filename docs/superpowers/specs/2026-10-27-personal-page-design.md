@@ -113,11 +113,11 @@ These come from the research and are not optional:
 
 80 to 120 words. Draft:
 
-> I build data platforms: the systems that collect data, make it reliable and deliver it to products and AI agents. I work on the engineering side of data. I do not build dashboards or train models.
+> I build data platforms: the systems that collect data, make it reliable and deliver it to products and AI agents. I do not build dashboards or train models.
 >
-> I have a master's degree in computer science from Masaryk University. I have built data systems since 2016: Spark, Kafka and Cassandra at Honeywell, and an event-driven IoT platform on the actor model at Atos. At Datamole, I build data platforms on AWS and Databricks. I hired and grew two data engineering teams.
+> I have a master's degree in computer science from Masaryk University, and I have built data systems since 2016. At Honeywell I worked with Spark, Kafka and Cassandra. At Atos I built an event-driven IoT platform on the actor model.
 >
-> Today I lead Data Engineering at Datamole in Brno, and our move into agentic AI. Agents are part of how I build, so I know where they help and where they fail.
+> At Datamole I build data platforms on AWS and Databricks, and I have hired and grown two data engineering teams. Today I also lead our move into agentic AI. I use agents in my own work, so I know where they help and where they fail.
 
 ### 6.4 Selected work
 

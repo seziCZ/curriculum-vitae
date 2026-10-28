@@ -66,7 +66,8 @@ test('About names the actor model and AWS, and no team size', async () => {
   const out = mkdtempSync(join(tmpdir(), 'page-'));
   await build(out, '2026-10-27');
   const html = readFileSync(join(out, 'index.html'), 'utf8');
-  assert.match(html, /I have built data systems since 2016: Spark, Kafka and Cassandra at Honeywell, and an event-driven IoT platform on the actor model at Atos\. At Datamole, I build data platforms on AWS and Databricks\. I hired and grew two data engineering teams\./);
+  assert.match(html, /I have a master's degree in computer science from Masaryk University, and I have built data systems since 2016\. At Honeywell I worked with Spark, Kafka and Cassandra\. At Atos I built an event\-driven IoT platform on the actor model\./);
+  assert.match(html, /At Datamole I build data platforms on AWS and Databricks, and I have hired and grown two data engineering teams\. Today I also lead our move into agentic AI\. I use agents in my own work, so I know where they help and where they fail\./);
 });
 
 test('build puts one next-event slot after the Community intro', async () => {
