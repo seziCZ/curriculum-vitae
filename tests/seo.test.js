@@ -61,7 +61,7 @@ test('structured data describes the person behind the page', async () => {
 
 test('the About section names the degree', async () => {
   const { html } = await built();
-  assert.match(html, /I have a master's degree in computer science from Masaryk University\./);
+  assert.match(html, /I switched to the Faculty of Informatics at Masaryk University and earned a master's degree there\./);
 });
 
 test('the plain spelling Tomas is visible on the page', async () => {
