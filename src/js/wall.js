@@ -5,10 +5,15 @@ const PAL = [C.navy, C.rust, C.blue, C.pink];
 const DATA_TYPES = ['griddot', 'scatter', 'pixels', 'tokens', 'network'];
 
 // The same balanced network on every tile, sometimes mirrored for variety.
+// Each node keeps its home position; idleStep moves it a little around it.
 function makeNetwork(rand) {
   const mx = rand() < .5 ? -1 : 1;
-  return { nodes: NET_NODES.map(([x, y]) => [x * mx, y]), edges: NET_EDGES };
+  const home = NET_NODES.map(([x, y]) => [x * mx, y]);
+  return { nodes: home.map(n => n.slice()), home, target: home.map(n => n.slice()), edges: NET_EDGES };
 }
+
+// How far a network node may drift from its home, per axis, as a share of the tile.
+const NODE_DRIFT = .03;
 
 // Fill the grid with motifs: 2x2 big circles, 2x1 pills and stripe blocks, data tiles and single tiles.
 // Tiles of one motif share colors and appear together, so the bigger shapes read as one piece.
@@ -73,6 +78,12 @@ export function idleStep(tiles, now, state, rand = Math.random) {
   const pick = a => a[Math.floor(rand() * a.length)];
   const solos = tiles.filter(tl => tl.solo);
   if (now - state.lastFlip > 700 && solos.length) { state.lastFlip = now; pick(solos).rotTarget += Math.PI / 2; }
+  const nets = tiles.filter(tl => tl.type === 'network');
+  if (now - state.lastNode > 900 && nets.length) {
+    state.lastNode = now;
+    const net = pick(nets).net, i = Math.floor(rand() * net.home.length);
+    net.target[i] = net.home[i].map(v => v + (rand() * 2 - 1) * NODE_DRIFT);
+  }
   if (now - state.lastData > 400) {
     state.lastData = now;
     const tl = pick(tiles);
@@ -88,5 +99,9 @@ export function idleStep(tiles, now, state, rand = Math.random) {
   for (const tl of tiles) {
     tl.rot += (tl.rotTarget - tl.rot) * .08;
     for (let i = 0; i < 8; i++) tl.data[i] += (tl.dataTarget[i] - tl.data[i]) * .06;
+    if (tl.type === 'network') tl.net.nodes.forEach((n, i) => {
+      n[0] += (tl.net.target[i][0] - n[0]) * .06;
+      n[1] += (tl.net.target[i][1] - n[1]) * .06;
+    });
   }
 }

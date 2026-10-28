@@ -24,7 +24,7 @@ function phasesFor(s) {
 // rand is for tests; the page uses Math.random. The scene does not read window or document.
 export function createScene(canvas, { reducedMotion = false, dpr = 1, rand = Math.random } = {}) {
   const ctx = canvas.getContext('2d');
-  const idle = { lastFlip: 0, lastData: 0 };
+  const idle = { lastFlip: 0, lastData: 0, lastNode: 0 };
   let W, H, panel, lay, tiles = [], leaving = [], extras = [], layers = [[], [], []];
   let start = null; // time of the first frame, for the opening
   let fade = null;  // reduced motion: the fade between the wall (0) and the stack (1)

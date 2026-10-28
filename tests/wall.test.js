@@ -33,7 +33,7 @@ test('group tiles never turn', () => {
   const rand = seeded(1);
   const { tiles } = buildWall(1440, 900, rand);
   const start = new Map(tiles.map(t => [t, t.rot]));
-  const state = { lastFlip: 0, lastData: 0 };
+  const state = { lastFlip: 0, lastData: 0, lastNode: 0 };
   for (let i = 1; i <= 200; i++) idleStep(tiles, i * 800, state, rand);
   let turned = 0;
   for (const t of tiles) {
@@ -76,4 +76,25 @@ test('networks use the fixed layout', () => {
       assert.equal(y, NET_NODES[i][1]);
     });
   }
+});
+
+test('network nodes drift a little from their place and ease there', () => {
+  const rand = seeded(1);
+  const { tiles } = buildWall(1440, 900, rand);
+  const nets = tiles.filter(t => t.type === 'network');
+  const home = new Map(nets.map(t => [t, t.net.nodes.map(n => n.slice())]));
+  const state = { lastFlip: 0, lastData: 0, lastNode: 0 };
+  let moved = false;
+  for (let i = 1; i <= 2000; i++) {
+    const before = nets.map(t => t.net.nodes.map(n => n.slice()));
+    idleStep(tiles, i * 100, state, rand);
+    nets.forEach((t, k) => t.net.nodes.forEach(([x, y], j) => {
+      const [hx, hy] = home.get(t)[j];
+      if (x !== hx || y !== hy) moved = true;
+      assert.ok(Math.hypot(x - hx, y - hy) <= .05 + 1e-9, 'a node strays too far');
+      const [bx, by] = before[k][j];
+      assert.ok(Math.hypot(x - bx, y - by) < .01, 'a node jumps instead of easing');
+    }));
+  }
+  assert.ok(moved, 'no node moved');
 });
