@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildWall } from '../src/js/wall.js';
-import { panelFor, splitTiles, stackLayout, assignStack, LABEL_GAP, LABEL_W } from '../src/js/layout.js';
+import { readFileSync } from 'node:fs';
+import { panelFor, splitTiles, stackLayout, assignStack, textRightFor, LABEL_GAP, LABEL_W } from '../src/js/layout.js';
 import { seeded } from './helpers.js';
 
 const COS = Math.cos(Math.PI / 6);
@@ -14,19 +15,40 @@ function setup(W, H, seed = 3) {
   return { rand, panel, kept, leaving };
 }
 
-// On a wide screen the text column takes 60% (see site.css), so the group sits 3% of the width
-// left of center, and the left part of the stack reaches into the column's fading edge.
-test('on a wide screen the stack group sits 3% of the width left of center', () => {
-  for (const W of [1280, 1440, 1866]) {
-    const H = 900;
+// On a wide screen the text column takes 60% (see site.css), and the group sits in the middle of the
+// space right of the text: the gap after the text equals the margin after the labels.
+test('on a wide screen the stack group sits centered between the text edge and the right edge', () => {
+  for (const [W, H] of [[1280, 800], [1440, 900], [1920, 1080]]) {
     const { panel, kept } = setup(W, H);
     const lay = stackLayout(panel, kept.length, H);
     assert.equal(lay.labels, true, `labels at ${W}`);
     const left = lay.cx - lay.Hs * COS;
     const right = lay.cx + lay.Hs * COS + LABEL_GAP + LABEL_W;
-    const shift = W * .03;
-    assert.ok(W - right >= 48 + shift - 1e-9, `right margin at ${W}`);
-    assert.ok(Math.abs((left - panel.x + shift) - (W - right - shift)) < 1, `not shifted by 3% at ${W}`);
+    const gap = left - textRightFor(W);
+    assert.ok(gap >= 48, `gap ${gap} at ${W}`);
+    assert.ok(Math.abs(gap - (W - right)) < 1, `gap ${gap} and right margin ${W - right} differ at ${W}`);
+  }
+});
+
+test('the text column ends at the page margin plus min(42vw, 640px)', () => {
+  assert.equal(textRightFor(1440), 72 + 1440 * .42);
+  assert.equal(textRightFor(1920), 80 + 640);
+});
+
+// site.css draws the text column; layout.js must place the stack against the same numbers.
+test('site.css uses the same breakpoint, margin and text cap as layout.js', () => {
+  const css = readFileSync('src/css/site.css', 'utf8');
+  assert.match(css, /@media \(min-width:1280px\)/);
+  assert.match(css, /--m:clamp\(16px,5vw,80px\)/);
+  assert.match(css, /--cap:min\(42vw,640px\)/);
+});
+
+test('the stack is at most 61.8% of the screen height', () => {
+  for (const [W, H] of [[1920, 1080], [1440, 900], [1024, 768]]) {
+    const { panel, kept } = setup(W, H);
+    const lay = stackLayout(panel, kept.length, H);
+    const total = lay.Hs * (1 + 2 * .62 + .07);
+    assert.ok(total <= .618 * H + 1e-9, `stack ${total} of ${H} at ${W}`);
   }
 });
 

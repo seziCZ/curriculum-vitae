@@ -7,8 +7,13 @@ export const LABEL_GAP = 46;
 export const LABEL_W = 220;
 export const PANEL_MARGIN = 48;
 export const MOBILE_BREAK = 760;
-// From this width the text column takes 60% (see site.css) and the stack group moves 3% of the width left.
+// From this width the text column takes 60% (see site.css) and the stack group sits right of the text.
 export const WIDE_BREAK = 1280;
+
+// The page margin and the right edge of the text column on a wide screen. They must match --m and --cap
+// in site.css: clamp(16px,5vw,80px) and min(42vw,640px).
+const pageMargin = W => clamp(W * .05, 16, 80);
+export const textRightFor = W => pageMargin(W) + Math.min(W * .42, 640);
 
 const COS = Math.cos(Math.PI / 6);
 const SIN = .5;
@@ -20,7 +25,7 @@ const SIN = .5;
 export function panelFor(W, H) {
   return W < MOBILE_BREAK
     ? { x: 0, y: NAV, w: W, h: 0, mobile: true }
-    : { x: W * .5, y: 0, w: W * .5, h: H, mobile: false, shift: W >= WIDE_BREAK ? W * .03 : 0 };
+    : { x: W * .5, y: 0, w: W * .5, h: H, mobile: false, textRight: W >= WIDE_BREAK ? textRightFor(W) : null };
 }
 
 // Each leaving tile takes the shortest way out. Tiles at the edges leave first, so none of them stays behind.
@@ -46,8 +51,9 @@ export function splitTiles(tiles, panel, W, H, rand = Math.random) {
 // The narrowest stack that is drawn next to the labels. A narrower panel shows the stack alone.
 export const MIN_STACK_W = 200;
 
-// On a desktop, the stack and its labels are one group, centered in the panel with a margin on both sides,
-// then moved left by panel.shift on a wide screen.
+// On a desktop, the stack and its labels are one group, centered in the panel with a margin on both sides.
+// On a wide screen the group is centered between the text edge and the right edge of the screen instead,
+// so the gap after the text equals the margin after the labels.
 // When that group leaves less than MIN_STACK_W for the stack (tablets, narrow windows), labels is false:
 // the stack alone fills the panel width without the margins and is centered. A phone has no labels either.
 // The panel is kept in the result because the extra tiles need it.
@@ -56,10 +62,14 @@ export function stackLayout(panel, keptCount, H) {
   const labelSpace = LABEL_GAP + LABEL_W;
   const labels = !panel.mobile && panel.w - 2 * PANEL_MARGIN - labelSpace >= MIN_STACK_W;
   const room = panel.mobile ? panel.w * .5 : panel.w - 2 * PANEL_MARGIN - (labels ? labelSpace : 0);
-  const Hs = Math.min(room / (2 * COS), panel.h * .8 / 2.4);
+  // The whole stack is Hs * 2.31 tall (Hs + 2L + T), and at most 61.8% of the screen height.
+  const Hs = Math.min(room / (2 * COS), panel.h * .618 / 2.31);
   const c = Hs / n, L = Hs * .62, T = Hs * .07;
   const hw = Hs * COS;
-  const cx = (labels ? panel.x + (panel.w - (2 * hw + labelSpace)) / 2 + hw : panel.x + panel.w / 2) - (panel.shift ?? 0);
+  const groupW = 2 * hw + labelSpace;
+  const cx = !labels ? panel.x + panel.w / 2
+    : panel.textRight ? (panel.textRight + panel.x + panel.w - groupW) / 2 + hw
+    : panel.x + (panel.w - groupW) / 2 + hw;
   const total = Hs + 2 * L + T;
   const cy = panel.mobile ? panel.y + panel.h / 2 : (H + NAV) / 2;
   const y0 = cy - total / 2;

@@ -1,4 +1,6 @@
-:root { --navy:#1c2030; --rust:#b4634a; --blue:#6e8ba5; --pink:#dcc5ba; --light:#e6d8ce; --muted:#b4b8c2; --nav:56px; }
+:root { --navy:#1c2030; --rust:#b4634a; --blue:#6e8ba5; --pink:#dcc5ba; --light:#e6d8ce; --muted:#b4b8c2; --nav:56px;
+  /* The page margin: the nav, the hero text, the text column and the hint share this left or right edge. */
+  --m:clamp(16px,5vw,80px); }
 * { box-sizing:border-box; margin:0; }
 html { scroll-behavior:smooth; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto; } }
@@ -8,7 +10,7 @@ h1, h2, h3, nav, .eyebrow, .hint, .btn, .when, .claim, .tag { font-family:'Space
 
 /* The menu bar sits above the grain, so it stays solid. */
 nav.top { position:fixed; top:0; left:0; right:0; height:var(--nav); z-index:11; display:flex; align-items:center;
-  justify-content:space-between; gap:16px; padding:0 clamp(16px,4vw,48px); background:var(--navy); }
+  justify-content:space-between; gap:16px; padding:0 var(--m); background:var(--navy); }
 nav .brand { font-weight:700; letter-spacing:-.01em; color:var(--light); text-decoration:none; white-space:nowrap; }
 nav .links { display:flex; gap:clamp(12px,2vw,28px); font-size:14px; overflow-x:auto; }
 nav .links a { color:var(--muted); text-decoration:none; white-space:nowrap; }
@@ -17,18 +19,20 @@ nav .links a:hover { color:var(--light); }
 /* The tile wall is one fixed canvas. While the page scrolls, it moves into the right half. */
 #c { position:fixed; inset:0; width:100vw; height:100vh; z-index:1; pointer-events:none; }
 
-.top-hero { position:relative; height:85vh; z-index:4; pointer-events:none; }
-.hero { pointer-events:auto; position:absolute; left:clamp(16px,6vw,96px); bottom:clamp(24px,8vh,96px);
+/* The first screen shows the hero and only the ABOUT label below it, so the name is its one focal point. */
+.top-hero { position:relative; height:92vh; z-index:4; pointer-events:none; }
+/* The box hangs its 32 px padding left of the page margin, so its text starts on the margin. */
+.hero { pointer-events:auto; position:absolute; left:calc(var(--m) - 32px); bottom:clamp(24px,8vh,96px);
   background:var(--navy); padding:28px 32px; max-width:min(600px,calc(100vw - 32px)); }
 .hero h1 { font-size:clamp(40px,7vw,92px); line-height:.95; font-weight:700; letter-spacing:-.02em; }
 .hero p { margin-top:16px; font-size:clamp(16px,1.8vw,20px); color:var(--muted); line-height:1.4; }
 .hero .claim { color:var(--light); font-weight:600; font-size:clamp(20px,2.4vw,28px); line-height:1.25; letter-spacing:-.01em; }
 .hero .bar { display:flex; gap:6px; margin-bottom:18px; }
 .hero .bar i { width:28px; height:8px; display:block; }
-.hint { position:absolute; right:clamp(16px,4vw,48px); bottom:16px; font-size:12px; letter-spacing:.2em;
+.hint { position:absolute; right:var(--m); bottom:16px; font-size:12px; letter-spacing:.2em;
   text-transform:uppercase; color:var(--light); background:var(--navy); padding:8px 12px; opacity:0; }
 
-main { position:relative; z-index:2; background:var(--navy); width:50vw; padding:0 clamp(16px,5vw,80px) 6vh; }
+main { position:relative; z-index:2; background:var(--navy); width:50vw; padding:0 var(--m) 6vh; }
 section.block { padding:12vh 0 2vh; scroll-margin-top:var(--nav); }
 section.block:first-child { padding-top:5vh; }
 .eyebrow { font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--rust); margin-bottom:14px; }
@@ -58,18 +62,27 @@ footer { color:var(--muted); font-size:13px; padding:10vh 0 2vh; }
 .grain { position:fixed; inset:0; pointer-events:none; z-index:10; opacity:.4; mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><filter id='m' x='0' y='0' width='1' height='1'><feTurbulence type='fractalNoise' baseFrequency='.005' numOctaves='4' stitchTiles='stitch'/><feColorMatrix values='.47 .47 .47 0 -.2 .47 .47 .47 0 -.2 .47 .47 .47 0 -.2 0 0 0 0 1'/></filter><rect width='100%' height='100%' filter='url(%23m)'/></svg>"), url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
 
-/* On a wide screen (WIDE_BREAK in layout.js), the text column takes 60% and fades out from 45vw to 60vw.
-   The stack stays in the right half, moved a little left, so its left part sinks into that fade.
-   The text, headings and dividers end at 42vw + padding, well before the stack. */
+/* On a tall enough desktop, the hero box is centered a little above the middle of the screen. */
+@media (min-width:761px) and (min-height:800px) {
+  .hero { bottom:auto; top:42vh; transform:translateY(-50%); }
+}
+
+/* On a wide screen (WIDE_BREAK in layout.js), the text column takes 60%. Text, headings and dividers end
+   at the margin plus --cap, and the column fades out from there to its edge. layout.js centers the stack
+   group between that text edge and the right edge of the screen, so its left corners sink into the fade.
+   layout.js repeats --m and --cap (textRightFor); keep them in step. */
 @media (min-width:1280px) {
-  main { width:60vw; background:linear-gradient(to right, var(--navy) calc(100% - 15vw), rgba(28,32,48,0)); }
-  section.block, footer { max-width:42vw; }
+  :root { --cap:min(42vw,640px); }
+  main { width:60vw; background:linear-gradient(to right, var(--navy) calc(var(--m) + var(--cap)), rgba(28,32,48,0)); }
+  section.block, footer { max-width:var(--cap); }
   main p { font-size:18px; max-width:54ch; }
 }
 
 /* On a phone, the text column takes the full width and scrolls over the wall, while the tiles leave. */
 @media (max-width:760px) {
-  main { width:auto; padding:0 16px 6vh; }
+  :root { --m:16px; }
+  main { width:auto; }
+  .hero { left:var(--m); }
   nav .links { font-size:13px; gap:12px; }
   nav .brand { display:none; }
 }
