@@ -87,9 +87,10 @@ test('build has the 3 layer sentences as text in About', async () => {
   assert.match(about, /Act: Apps, reports and AI agents turn this data into decisions and actions\./);
 });
 
-test('the microscope item names its scale', async () => {
+test('the Datamole work items name their scale', async () => {
   const out = mkdtempSync(join(tmpdir(), 'page-'));
   await build(out, '2026-10-27');
   const html = readFileSync(join(out, 'index.html'), 'utf8');
-  assert.match(html, /defined fully in code with CDK\. We have connected hundreds of microscopes to it\. I also hired/);
+  assert.match(html, /so the team could focus on what the operators needed from their data\. The platform now processes the data of public transport networks in 19 countries\.<\/p>/);
+  assert.match(html, /<p>Electron microscopes produce large amounts of data\. I built one cloud-native platform for predictive analytics on this data, from 50\+ AWS services defined fully in code with CDK\. Today it connects hundreds of microscopes\. I also hired and grew the first team of 5\.<\/p>/);
 });
