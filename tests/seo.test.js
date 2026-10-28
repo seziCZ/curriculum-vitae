@@ -96,6 +96,19 @@ test('favicons and the link preview image have the right sizes', async () => {
   assert.match(html, /<link rel="icon" href="favicon\.svg" type="image\/svg\+xml">/);
 });
 
+test('favicon.ico holds 16, 32 and 48 pixel PNG icons for older tools', async () => {
+  const { out } = await built();
+  const ico = readFileSync(join(out, 'favicon.ico'));
+  assert.equal(ico.readUInt16LE(2), 1, 'not an icon file');
+  const sizes = Array.from({ length: ico.readUInt16LE(4) }, (_, i) => {
+    const entry = 6 + 16 * i, offset = ico.readUInt32LE(entry + 12);
+    const png = ico.subarray(offset, offset + ico.readUInt32LE(entry + 8));
+    assert.equal(png.readUInt32BE(16), ico[entry]);
+    return [png.readUInt32BE(16), png.readUInt32BE(20)];
+  });
+  assert.deepEqual(sizes, [[16, 16], [32, 32], [48, 48]]);
+});
+
 test('site address gets one trailing slash and must be absolute https', () => {
   assert.equal(normalizeSiteUrl('https://tomas.example'), 'https://tomas.example/');
   assert.equal(normalizeSiteUrl('https://tomas.example/'), 'https://tomas.example/');
