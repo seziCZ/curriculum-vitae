@@ -46,6 +46,13 @@ test('the contact email is the address at the domain', async () => {
   assert.doesNotMatch(html, /gmail\.com/);
 });
 
+test('the years of experience count from 2011 and 2016 to the build year', async () => {
+  const out = mkdtempSync(join(tmpdir(), 'page-'));
+  await build(out, '2027-03-15');
+  const html = readFileSync(join(out, 'index.html'), 'utf8');
+  assert.match(html, /16 years of engineering, 11 of them in data, on AWS and Databricks\./);
+});
+
 test('ongoing work items end in the build year', async () => {
   const out = mkdtempSync(join(tmpdir(), 'page-'));
   await build(out, '2027-03-15');

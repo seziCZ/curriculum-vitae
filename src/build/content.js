@@ -141,8 +141,10 @@ export function renderPosts(posts) {
 export function renderPage(template, { events = [], posts = [], today, head = '' } = {}) {
   let html = template
     .replace('<!--@head-->', () => head)
-    // Ongoing work items end in the build year, so a new deploy keeps them current.
+    // Ongoing work items end in the build year, and "years of" counts run from a start year to it,
+    // so a new deploy keeps them current.
     .replaceAll('<!--@year-->', () => (today ?? '').slice(0, 4))
+    .replace(/<!--@years-since-(\d{4})-->/g, (_, from) => String(Number((today ?? '').slice(0, 4)) - Number(from)))
     .replace('<!--@community-->', () => renderCommunity(events, today));
   if (posts.length === 0) {
     html = html.replace(/<!--@posts-section-->[\s\S]*?<!--\/@posts-section-->\n?/, '')

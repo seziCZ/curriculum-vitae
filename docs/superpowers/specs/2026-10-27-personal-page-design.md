@@ -92,6 +92,8 @@ The layers stand for Tomáš's expertise, not for the medallion architecture: In
 > **I build the data platforms that products and AI agents run on.**
 > Head of Data Engineering at Datamole, Brno. 15 years of engineering, 10 of them in data, on AWS and Databricks. Agentic AI is my current focus, and the part of my work I enjoy most.
 
+The two numbers are counted by the build from 2011 (engineering) and 2016 (data) to the build year, so they stay correct in later years.
+
 The name "Tomáš Sezima" stays the biggest text on the screen. The bold line comes directly under it.
 
 ### 6.2 Rules for all text
