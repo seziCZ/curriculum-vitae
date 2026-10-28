@@ -6,8 +6,9 @@ body { background:var(--navy); color:var(--light); font-family:'Inter',system-ui
 /* Space Grotesk for everything that is a title or a label; Inter for reading. */
 h1, h2, h3, nav, .eyebrow, .hint, .btn, .when, .claim, .tag { font-family:'Space Grotesk',system-ui,sans-serif; }
 
-nav.top { position:fixed; top:0; left:0; right:0; height:var(--nav); z-index:5; display:flex; align-items:center;
-  justify-content:space-between; gap:16px; padding:0 clamp(16px,4vw,48px); background:rgba(28,32,48,.9); backdrop-filter:blur(8px); }
+/* The menu bar sits above the grain, so it stays solid. */
+nav.top { position:fixed; top:0; left:0; right:0; height:var(--nav); z-index:11; display:flex; align-items:center;
+  justify-content:space-between; gap:16px; padding:0 clamp(16px,4vw,48px); background:var(--navy); }
 nav .brand { font-weight:700; letter-spacing:-.01em; color:var(--light); text-decoration:none; white-space:nowrap; }
 nav .links { display:flex; gap:clamp(12px,2vw,28px); font-size:14px; overflow-x:auto; }
 nav .links a { color:var(--muted); text-decoration:none; white-space:nowrap; }
