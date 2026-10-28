@@ -70,7 +70,7 @@ The first screen is a wall of square tiles, as in the prototype. The tiles have 
 - Desktop: when the visitor scrolls, the text column (left half, opaque navy) slides up over the wall. At the same time, the tiles in the left half leave the screen, each by the shortest way out. The wall stays only in the right half, which is sticky.
 - While About passes, the tiles in the right half build an isometric stack of three layers at once. Tiles that are not needed leave. No tile may stay behind outside the stack.
 - After the stack is complete, the layer labels appear one by one, spread over the rest of the page down to Posts: first Ingest, then Govern, then Act. Each label stays visible once it appears.
-- The stack and its labels are one group, centered in the right half, with a margin of at least 48 pixels on both sides. The labels have a fixed width of 220 pixels.
+- The stack and its labels are one group, centered in the right half, with a margin of at least 48 pixels on both sides. The labels have a fixed width of 220 pixels. From 1280 pixels wide, the text column takes 60% of the width and fades out from 45% to 60%; the group moves left by 3% of the width, so the left part of the stack sinks into that fade. Text, headings and dividers end at 42% of the width plus the column padding, well before the stack, and paragraphs are 18 pixels (17 below 1280).
 - Phone: no stack forms. All tiles leave the screen while the hero scrolls away, and the full-width text column scrolls over the wall, so nothing covers the text while the visitor reads. With reduced motion, the still wall fades away when About arrives. (An earlier version built the stack in a band under the menu; on a phone it covered the text without adding anything.)
 
 ### 5.4 The three layers

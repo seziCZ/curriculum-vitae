@@ -14,18 +14,30 @@ function setup(W, H, seed = 3) {
   return { rand, panel, kept, leaving };
 }
 
-test('stack group is centered with equal margins of at least 48 px', () => {
-  for (const W of [1440, 1866]) {
+// On a wide screen the text column takes 60% (see site.css), so the group sits 3% of the width
+// left of center, and the left part of the stack reaches into the column's fading edge.
+test('on a wide screen the stack group sits 3% of the width left of center', () => {
+  for (const W of [1280, 1440, 1866]) {
     const H = 900;
     const { panel, kept } = setup(W, H);
     const lay = stackLayout(panel, kept.length, H);
     assert.equal(lay.labels, true, `labels at ${W}`);
     const left = lay.cx - lay.Hs * COS;
     const right = lay.cx + lay.Hs * COS + LABEL_GAP + LABEL_W;
-    assert.ok(left - panel.x >= 48, `left margin at ${W}`);
-    assert.ok(W - right >= 48, `right margin at ${W}`);
-    assert.ok(Math.abs((left - panel.x) - (W - right)) < 1, `margins differ at ${W}`);
+    const shift = W * .03;
+    assert.ok(W - right >= 48 + shift - 1e-9, `right margin at ${W}`);
+    assert.ok(Math.abs((left - panel.x + shift) - (W - right - shift)) < 1, `not shifted by 3% at ${W}`);
   }
+});
+
+test('below 1280 px the stack group is centered with equal margins of at least 48 px', () => {
+  const W = 1200, H = 900;
+  const { panel, kept } = setup(W, H);
+  const lay = stackLayout(panel, kept.length, H);
+  assert.equal(lay.labels, true);
+  const left = lay.cx - lay.Hs * COS;
+  const right = lay.cx + lay.Hs * COS + LABEL_GAP + LABEL_W;
+  assert.ok(left - panel.x >= 48 && Math.abs((left - panel.x) - (W - right)) < 1, `margins ${left - panel.x}, ${W - right}`);
 });
 
 // When the panel has no room for the labels next to a stack of 200 px, the stack is drawn alone, centered.
