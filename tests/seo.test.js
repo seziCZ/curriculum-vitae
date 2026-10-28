@@ -55,7 +55,13 @@ test('structured data describes the person behind the page', async () => {
     'https://www.meetup.com/databricks-brno-user-group/',
   ]);
   assert.equal(person.image, undefined);
+  assert.deepEqual(person.alumniOf, { '@type': 'CollegeOrUniversity', name: 'Masaryk University', url: 'https://www.muni.cz/en' });
   assert.equal(byType('ProfilePage').mainEntity['@id'], person['@id']);
+});
+
+test('the About section names the degree', async () => {
+  const { html } = await built();
+  assert.match(html, /I have a master's degree in computer science from Masaryk University\./);
 });
 
 test('the plain spelling Tomas is visible on the page', async () => {

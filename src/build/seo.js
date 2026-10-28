@@ -36,6 +36,7 @@ export function structuredData(siteUrl, today) {
         givenName: 'Tomáš', familyName: 'Sezima', url: siteUrl, description: CLAIM,
         jobTitle: 'Head of Data Engineering',
         worksFor: { '@type': 'Organization', name: 'Datamole' },
+        alumniOf: { '@type': 'CollegeOrUniversity', name: 'Masaryk University', url: 'https://www.muni.cz/en' },
         homeLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: 'Brno', addressCountry: 'CZ' } },
         knowsAbout: ['Data engineering', 'Data platforms', 'Amazon Web Services', 'Databricks', 'Generative AI', 'Agentic AI'],
         memberOf: GROUPS.map(g => ({ '@type': 'Organization', name: g.name, url: g.url })),
