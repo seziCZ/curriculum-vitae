@@ -87,6 +87,13 @@ test('build has the 3 layer sentences as text in About', async () => {
   assert.match(about, /Act: Apps, reports and AI agents turn this data into decisions and actions\./);
 });
 
+test('the Honeywell item names Lyric and its event rate', async () => {
+  const out = mkdtempSync(join(tmpdir(), 'page-'));
+  await build(out, '2026-10-27');
+  const html = readFileSync(join(out, 'index.html'), 'utf8');
+  assert.match(html, /<p>I worked with Spark, Kafka and Cassandra behind Lyric, Honeywell's connected-home cloud, before Spark was mainstream\. We processed thousands of events a second from homes across the world\.<\/p>/);
+});
+
 test('the Datamole work items name their scale', async () => {
   const out = mkdtempSync(join(tmpdir(), 'page-'));
   await build(out, '2026-10-27');

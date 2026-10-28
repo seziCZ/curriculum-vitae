@@ -123,7 +123,7 @@ Newest first. Each item has a date range, a company, a title that starts with th
 1. 2024 to the current year (filled in by the build), Datamole. A data product for public transport. He led the Databricks adoption and built a team of 5 data engineers. The team adopted Lakeflow early, so it could focus on what the transport operators needed from their data. Result: the platform processes the data behind about 500,000 public transport journeys a day in the Netherlands (the client is Transdev Nederland, not named on the page; the figure is the daily journeys Transdev Nederland publishes on its "Meet Transdev" page). Tags: Databricks, Lakeflow, AWS.
 2. 2018 to the current year (filled in by the build), Datamole. Predictive analytics for electron microscopes. He built one cloud-native platform from 50+ AWS services, defined fully in code with CDK, and hired and grew the first team of 5. Result: hundreds of microscopes connected to the platform. Tags: AWS, CDK, Python.
 3. 2017 to 2018, Atos. An IoT platform where milliseconds counted. Event-driven design with Akka and functional programming, built for low latency, fault tolerance and scale. Tags: Scala, Akka.
-4. 2016 to 2017, Honeywell. Analytics for connected homes. Spark, Cassandra and Kafka behind Honeywell's connected-home platforms. Tags: Spark, Kafka, Cassandra.
+4. 2016 to 2017, Honeywell. Analytics for connected homes. Spark, Kafka and Cassandra behind Lyric, Honeywell's connected-home cloud. Result: thousands of events a second from homes across the world (his own figure; Honeywell publishes no Lyric numbers). Tags: Spark, Kafka, Cassandra.
 
 ### 6.5 Community
 
