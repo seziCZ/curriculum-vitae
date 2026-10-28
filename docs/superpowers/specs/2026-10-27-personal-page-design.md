@@ -115,9 +115,7 @@ These come from the research and are not optional:
 
 > I build data platforms: the systems that collect data, make it reliable and deliver it to products and AI agents. I work on the engineering side of data. I do not build dashboards or train models.
 >
-> I studied computer science at the Faculty of Informatics at Masaryk University, and it led me to astrophysics. I studied that for a while too, and my master's thesis brought the two fields together. Computer science is the degree I finished, and it is still the part of my background I rely on most.
->
-> I have built data systems since 2016: Spark, Kafka and Cassandra at Honeywell, and an event-driven IoT platform on the actor model at Atos. At Datamole, I build data platforms on AWS and Databricks. I hired and grew two data engineering teams.
+> I have a master's degree in computer science from Masaryk University. I have built data systems since 2016: Spark, Kafka and Cassandra at Honeywell, and an event-driven IoT platform on the actor model at Atos. At Datamole, I build data platforms on AWS and Databricks. I hired and grew two data engineering teams.
 >
 > Today I lead Data Engineering at Datamole in Brno, and our move into agentic AI. Agents are part of how I build, so I know where they help and where they fail.
 
