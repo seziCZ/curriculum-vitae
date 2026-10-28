@@ -27,7 +27,8 @@ export function structuredData(siteUrl, today) {
     '@graph': [
       { '@type': 'WebSite', '@id': id('website'), url: siteUrl, name: NAME, alternateName: PLAIN_NAME },
       {
-        '@type': 'ProfilePage', '@id': id('profile'), url: siteUrl, name: NAME, dateModified: today,
+        // Google wants a full date and time here, so the build date gets midnight UTC.
+        '@type': 'ProfilePage', '@id': id('profile'), url: siteUrl, name: NAME, dateModified: `${today}T00:00:00Z`,
         isPartOf: { '@id': id('website') }, mainEntity: { '@id': id('person') },
       },
       {

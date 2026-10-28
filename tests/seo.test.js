@@ -43,7 +43,8 @@ test('structured data describes the person behind the page', async () => {
   const graph = jsonLd(html)['@graph'];
   const byType = t => graph.find(n => n['@type'] === t);
   assert.equal(byType('WebSite').url, SITE);
-  assert.equal(byType('ProfilePage').dateModified, '2026-10-27');
+  // Google's profile page check wants a full date and time with a time zone, not only a date.
+  assert.equal(byType('ProfilePage').dateModified, '2026-10-27T00:00:00Z');
   const person = byType('Person');
   assert.equal(person.name, 'Tomáš Sezima');
   assert.equal(person.alternateName, 'Tomas Sezima');
