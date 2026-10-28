@@ -25,9 +25,9 @@ nav .links a:hover { color:var(--light); }
 .hero { pointer-events:auto; position:absolute; left:calc(var(--m) - 32px); bottom:clamp(24px,8vh,96px);
   background:var(--navy); padding:28px 32px; max-width:min(600px,calc(100vw - 32px)); }
 .hero h1 { font-size:clamp(40px,7vw,92px); line-height:.95; font-weight:700; letter-spacing:-.02em; }
-.hero p { margin-top:16px; font-size:clamp(16px,1.8vw,20px); color:var(--muted); line-height:1.4; }
+.hero p { margin-top:16px; font-size:clamp(16px,1.8vw,20px); color:var(--muted); line-height:1.5; }
 .hero .claim { color:var(--light); font-weight:600; font-size:clamp(20px,2.4vw,28px); line-height:1.25; letter-spacing:-.01em; }
-.hero .bar { display:flex; gap:6px; margin-bottom:18px; }
+.hero .bar { display:flex; gap:6px; margin-bottom:16px; }
 .hero .bar i { width:28px; height:8px; display:block; }
 .hint { position:absolute; right:var(--m); bottom:16px; font-size:12px; letter-spacing:.2em;
   text-transform:uppercase; color:var(--light); background:var(--navy); padding:8px 12px; opacity:0; }
@@ -35,13 +35,14 @@ nav .links a:hover { color:var(--light); }
 main { position:relative; z-index:2; background:var(--navy); width:50vw; padding:0 var(--m) 6vh; }
 section.block { padding:12vh 0 2vh; scroll-margin-top:var(--nav); }
 section.block:first-child { padding-top:5vh; }
-.eyebrow { font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--rust); margin-bottom:14px; }
+.eyebrow { font-size:12px; letter-spacing:.2em; text-transform:uppercase; color:var(--rust); margin-bottom:16px; }
 h2 { font-size:clamp(28px,3.4vw,44px); font-weight:700; letter-spacing:-.02em; line-height:1.1; }
 main p { color:var(--muted); line-height:1.6; font-size:17px; margin-top:16px; max-width:52ch; }
-/* Work items and meetups share one look: a thin line above, a clay date line and a title. */
-.item, .event { border-top:1px solid rgba(230,216,206,.15); padding:22px 0 4px; margin-top:22px; }
-.item .when, .event .when { font-size:13px; color:var(--rust); letter-spacing:.06em; }
-.item h3, .event h3 { font-size:21px; margin-top:6px; font-weight:600; }
+/* Work items and meetups share one look: a thin line above, a clay date line and a title.
+   Small text uses 14 px; 12 px is only for the eyebrows and the tags. Spacing goes in steps of 8 px. */
+.item, .event { border-top:1px solid rgba(230,216,206,.15); padding:24px 0 4px; margin-top:24px; }
+.item .when, .event .when { font-size:14px; color:var(--rust); letter-spacing:.06em; }
+.item h3, .event h3 { font-size:22px; margin-top:6px; font-weight:600; }
 .item p { margin-top:8px; }
 .tags { margin-top:12px; display:flex; flex-wrap:wrap; gap:6px; }
 .tag { font-size:12px; border:1px solid rgba(230,216,206,.25); padding:3px 9px; border-radius:20px; color:var(--muted); }
@@ -90,7 +91,7 @@ footer { color:var(--muted); font-size:13px; padding:10vh 0 2vh; }
 /* Community events. */
 /* Lists keep the left edge of the text column, like the work items. */
 .events, .talks { list-style:none; padding:0; }
-.event .venue { margin-top:4px; font-size:15px; }
+.event .venue { margin-top:4px; font-size:14px; }
 .talks { margin-top:10px; color:var(--muted); font-size:16px; line-height:1.5; max-width:52ch; }
 .talks li { margin-top:6px; }
 .talk-title { color:var(--light); }
