@@ -43,6 +43,7 @@ test('the contact email is the address at the domain', async () => {
   await build(out, '2026-10-27');
   const html = readFileSync(join(out, 'index.html'), 'utf8');
   assert.match(html, /href="mailto:tomas@sezima\.dev"/);
+  assert.match(html, /<a class="btn ghost" href="https:\/\/github\.com\/seziCZ">GitHub<\/a>/);
   assert.doesNotMatch(html, /gmail\.com/);
 });
 

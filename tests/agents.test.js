@@ -22,6 +22,7 @@ test('llms.txt names the person, the claim and links the Markdown page and the c
   assert.match(llms, /\[Profile in Markdown\]\(https:\/\/sezima\.dev\/index\.html\.md\)/);
   assert.match(llms, /\[LinkedIn\]\(https:\/\/www\.linkedin\.com\/in\/sezima\)/);
   assert.match(llms, /\[Email\]\(mailto:tomas@sezima\.dev\)/);
+  assert.match(llms, /\[GitHub\]\(https:\/\/github\.com\/seziCZ\)/);
 });
 
 test('the Markdown page has the hero, the sections and the work items', async () => {

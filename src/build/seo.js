@@ -6,6 +6,7 @@ const PLAIN_NAME = 'Tomas Sezima';
 const CLAIM = 'I build the data platforms that products and AI agents run on.';
 const DESCRIPTION = 'Tomáš Sezima builds the data platforms that products and AI agents run on. Head of Data Engineering at Datamole in Brno, working with AWS, Databricks and agentic AI.';
 const LINKEDIN = 'https://www.linkedin.com/in/sezima';
+const GITHUB = 'https://github.com/seziCZ';
 const GROUPS = [
   { name: 'AWS User Group Brno', url: 'https://www.meetup.com/brno-aws-user-group/' },
   { name: 'Databricks User Group Brno', url: 'https://www.meetup.com/databricks-brno-user-group/' },
@@ -40,7 +41,7 @@ export function structuredData(siteUrl, today) {
         homeLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: 'Brno', addressCountry: 'CZ' } },
         knowsAbout: ['Data engineering', 'Data platforms', 'Amazon Web Services', 'Databricks', 'Generative AI', 'Agentic AI'],
         memberOf: GROUPS.map(g => ({ '@type': 'Organization', name: g.name, url: g.url })),
-        sameAs: [LINKEDIN],
+        sameAs: [LINKEDIN, GITHUB],
       },
     ],
   };

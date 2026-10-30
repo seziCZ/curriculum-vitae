@@ -49,7 +49,7 @@ test('structured data describes the person behind the page', async () => {
   assert.equal(person.name, 'Tomáš Sezima');
   assert.equal(person.alternateName, 'Tomas Sezima');
   assert.equal(person.jobTitle, 'Head of Data Engineering');
-  assert.deepEqual(person.sameAs, ['https://www.linkedin.com/in/sezima']);
+  assert.deepEqual(person.sameAs, ['https://www.linkedin.com/in/sezima', 'https://github.com/seziCZ']);
   assert.deepEqual(person.memberOf.map(g => g.url), [
     'https://www.meetup.com/brno-aws-user-group/',
     'https://www.meetup.com/databricks-brno-user-group/',

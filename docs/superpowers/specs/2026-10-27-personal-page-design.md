@@ -159,7 +159,7 @@ Known events (from Meetup, Luma and the Databricks user group site):
 
 ### 6.7 Contact
 
-Founders contact Tomáš personally, not Datamole. This is his own presentation. Links: LinkedIn https://www.linkedin.com/in/sezima and email tomas@sezima.dev, which forwards to his Gmail (see the deployment design).
+Founders contact Tomáš personally, not Datamole. This is his own presentation. Links: LinkedIn https://www.linkedin.com/in/sezima, email tomas@sezima.dev, which forwards to his Gmail (see the deployment design), and GitHub https://github.com/seziCZ, where the source of this page is.
 
 One clear next step, 1 or 2 sentences, with the LinkedIn and email links. Draft:
 > **Building a product on top of data? Write to me.** Tell me what you are building and where your data comes from.
