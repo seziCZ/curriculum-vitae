@@ -1,86 +1,48 @@
-# Curriculum vitae
+# sezima.dev
 
-This is my personal page. It is a static site that a Node script builds into `dist/`, and a second script deploys it to S3 and CloudFront.
+[![Tests](https://github.com/seziCZ/curriculum-vitae/actions/workflows/tests.yml/badge.svg)](https://github.com/seziCZ/curriculum-vitae/actions/workflows/tests.yml)
 
-Prerequisites: Node 20 or newer, Terraform 1.10 or newer, AWS CLI v2, and an AWS CLI profile for the account with the hosted zone.
+The source of my personal page, [sezima.dev](https://sezima.dev). A static site with a canvas scene, built by a Node script without a framework or a bundler, and deployed to S3 and CloudFront with Terraform.
 
-## Local work
+[![The first screen: a wall of geometric tiles behind the name](docs/screenshot.png)](https://sezima.dev)
 
-```powershell
+## What is in it
+
+- **A canvas scene instead of a hero image.** The first screen is a wall of geometric tiles. When the visitor scrolls, the tiles under the text leave the screen and the rest fly into an isometric stack of three layers: Ingest, Govern, Act. Once in a while, a row of tiles in one layer flips over, one tile after the other, like a split-flap display. The geometry is plain 2D canvas code in [src/js](src/js), with no graphics library.
+- **It behaves.** With `prefers-reduced-motion`, nothing flies: a still wall fades into the finished stack. On a phone, there is no stack at all, because it would cover the text. The page works without JavaScript; the scene is decoration.
+- **Content from files.** Meetups live in [content/events](content/events) and posts in [content/posts](content/posts), as small JSON files. The build renders them into the page, shows the next upcoming event, hides sections that have no content yet, and counts the years in the hero from fixed start dates, so the numbers stay right in later years.
+- **A version for AI agents.** The build writes `llms.txt` and `index.html.md` from the rendered page, and the page links to the Markdown version. Search engines get JSON-LD (`Person` and `ProfilePage`), a generated Open Graph image, a sitemap and robots.txt.
+- **Infrastructure as code.** [infra/site](infra/site) holds the S3 bucket, the CloudFront distribution with security headers, the certificate, the DNS records, a CloudFront function that redirects `www`, a monthly budget and a traffic alarm. The deploy script uploads `dist/`, deletes files that are no longer in it, and invalidates the cache.
+- **Tests without a browser.** More than a hundred tests run with `node --test` and nothing else. The canvas scene runs in the tests against a small canvas stub, so the tests can check, for example, that a flipping tile is never drawn mirrored and lands back on its cell.
+
+## Layout
+
+```
+src/index.html      the page, with markers the build fills in
+src/css, src/js     styles and the canvas scene
+src/build           the build-time rendering: content, SEO, the agent version
+scripts             build, serve, deploy, image generation
+content             events and posts
+infra               Terraform: bootstrap (state bucket) and site
+tests               node:test suites
+docs                the design document, the implementation plans, the deploy manual
+prototypes          the HTML sketches the design started from
+```
+
+## Run it
+
+```sh
 npm ci
-npm run dev     # builds and serves the page locally
+npm run dev     # builds into dist/ and serves it on http://127.0.0.1:8080
 npm test
 ```
 
-The images come from `node scripts/make-images.mjs`. Run it only when the images must change.
+Node 20 or newer. No other tools are needed for local work. Deploying needs an AWS account, Terraform and the AWS CLI; see [docs/deploy.md](docs/deploy.md).
 
-## First deploy
+## How it was made
 
-```powershell
-$env:AWS_PROFILE = "<profile>"
-```
+I designed and built the page together with Claude Code. The design document and the implementation plans it worked from are in [docs/superpowers](docs/superpowers), and the commits name it as co-author. Each change followed the same cycle: a failing test, the change, a look in the browser, and a line in the design document when the design changed. The page says that I use agents in my own work; this repository is one example.
 
-Every new terminal needs this line again.
+## Licence
 
-0. Check that the domain is delegated to its Route 53 hosted zone. If you registered the domain in Route 53, this is automatic. Otherwise, the name servers of the domain must be the four name servers of the zone:
-
-   ```powershell
-   nslookup -type=NS <domain>
-   aws route53 get-hosted-zone --id <zone id> --query DelegationSet.NameServers
-   ```
-
-   Without delegation, the certificate validation in step 2 stops after 20 minutes.
-
-   Registering a domain in Route 53 can create a second hosted zone with the same name. Keep the zone whose name servers the domain uses. Delete the other zone (it costs $0.50 per month), or set `hosted_zone_id` in `terraform.tfvars`.
-
-1. Create the bucket for the Terraform state. This is done once.
-
-   ```powershell
-   terraform -chdir=infra/bootstrap init
-   terraform -chdir=infra/bootstrap apply
-   ```
-
-   If the apply fails with BucketAlreadyExists, the name is taken. Change it in `infra/bootstrap/main.tf` and in `infra/site/versions.tf`.
-
-   The state file of this step stays on your laptop, and Git ignores it. State files can contain account details, so they never go into the repository. You do not need this file again: the bucket is protected against deletion.
-
-2. Create the site. `infra/site/terraform.tfvars` sets the domain and the email address for the cost and traffic alerts. To change them, edit that file and commit it.
-
-   ```powershell
-   terraform -chdir=infra/site init
-   terraform -chdir=infra/site apply
-   ```
-
-   AWS then sends an email to confirm the alert subscription. Confirm it, or the traffic alarm cannot reach you.
-
-   Terraform finds the hosted zone by the domain name. If the hosted zone is for a parent domain (for example, the page is cv.example.com and the zone is example.com), set `hosted_zone_id`.
-
-   The first apply takes several minutes, mostly for CloudFront.
-
-3. Deploy the page. A deploy takes about a minute.
-
-   ```powershell
-   npm run deploy
-   ```
-
-4. Outside this repository: verify the domain in Google Search Console and Bing Webmaster Tools. Then run Google's Rich Results Test and LinkedIn's Post Inspector.
-
-## Later deploys
-
-```powershell
-$env:AWS_PROFILE = "<profile>"
-npm run deploy
-```
-
-Every new terminal needs the first line again. The script reads the Terraform outputs and builds the page with the real address. Then it uploads `dist/`, deletes files that are no longer in it, and invalidates the CloudFront cache.
-
-## Tear down
-
-`terraform destroy` in `infra/site` fails while the site bucket has files. Empty it first:
-
-```powershell
-aws s3 rm "s3://$(terraform -chdir=infra/site output -raw bucket_name)" --recursive
-terraform -chdir=infra/site destroy
-```
-
-The bootstrap bucket is protected with `prevent_destroy`, so Terraform refuses to delete it. This is on purpose, because it holds the state of the site.
+The code is under the [MIT licence](LICENSE). The texts, the images and my name are not: please do not reuse them.

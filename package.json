@@ -1,5 +1,13 @@
 {
   "name": "curriculum-vitae",
+  "description": "The source of sezima.dev: a static personal page with a canvas scene, built by a Node script and deployed to S3 and CloudFront.",
+  "homepage": "https://sezima.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seziCZ/curriculum-vitae.git"
+  },
+  "author": "Tomáš Sezima",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "engines": {
